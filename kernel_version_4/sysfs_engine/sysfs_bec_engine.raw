@@ -1,0 +1,23 @@
+###################################################################################################################################
+#                                                                                                                                 #
+#								BACKEND CACHE ENGINE (BEC) config tunables.                                                       #
+# It is used when loading the config paramters from avm.conf file into kernel                                                     #
+#                                                                                                                                 #
+###################################################################################################################################
+#
+###################################################################################################################################
+# NAME							| TYPE	| OPS	|DEFAULT| Show Function  						| Store Function                  #
+# sysfs entries visible in  	|       |       |VALUE 	| This should already be) 				| Same limitation as              #
+# /sys/kernel/avm/          	|       |       |       | defined in header file,otherwise		| Show function                   #
+#                           	|       |       |       | compilation will fail)				|                                 #
+###################################################################################################################################
+#
+get_set_switch_bec				|U64	| BOTH	|		| avm_get_switch_bec					| avm_set_switch_bec
+get_set_tunable_bec_size 		|U64	| BOTH	|		| avm_get_tunable_bec_size				| avm_set_tunable_bec_size
+get_set_tunable_bec_threads		|U64	| BOTH	|		| avm_get_tunable_bec_threads			| avm_set_tunable_bec_threads
+get_set_tunable_bec_ep			|U64	| BOTH	|		| avm_get_tunable_bec_ep				| avm_set_tunable_bec_ep
+#
+#Entry for showing BEC Engine Counters/Timers
+get_bec_counters				|STRING	| SHOW	| 		| avm_get_bec_counters					| NULL
+#
+###################################################################################################################################

@@ -1,0 +1,67 @@
+###################################################################################################################################
+#                                                                                                                                 #
+#								TARGET ENGINE config tunables.                                                                    #
+#           It is used when loading the config paramters from avm.conf file into kernel                                           #
+#                                                                                                                                 #
+###################################################################################################################################
+###################################################################################################################################
+#                               |       |       |       |                                       |                                 #
+# NAME							| TYPE	| OPS	|DEFAULT| Show Function  						| Store Function                  #
+# sysfs entries visible in  	|       |       |VALUE 	| This should already be) 				| Same limitation as              #
+# /sys/kernel/avm/          	|       |       |       | defined in header file,otherwise		| Show function                   #
+#                               |       |       |       |                                       |                                 #
+###################################################################################################################################
+#
+get_target_name					|STRING	| SHOW	|		| avm_get_target_name					| NULL
+get_target_backstore_name		|STRING	| SHOW	|		| avm_get_target_backstore_name			| NULL
+get_target_device_size_bytes	|STRING	| BOTH	| 		| avm_get_target_device_size_bytes		| NULL
+get_target_device_size_blocks	|STRING	| BOTH	| 		| avm_get_target_device_size_blocks		| NULL
+get_set_target_passthrough_mode	|U64	| BOTH	|		| avm_get_target_passthrough_mode		| avm_set_target_passthrough_mode
+get_set_target_passthrough_read	|U64	| BOTH	|		| avm_get_target_passthrough_read		| avm_set_target_passthrough_read
+get_set_target_passthrough_write|U64	| BOTH	|		| avm_get_target_passthrough_write		| avm_set_target_passthrough_write
+get_set_target_lba_block_size	|U64	| BOTH	|		| avm_get_target_lba_block_size			| avm_set_target_lba_block_size
+#To Activate IOs from AVM's target map function
+get_set_target_switch_iopath	|U64	| BOTH	|		| avm_get_target_switch_iopath			| avm_set_target_switch_iopath
+#get_set_target_pba_block_size	|U64	| BOTH	|		| avm_get_target_pba_block_size			| avm_set_target_pba_block_size
+#get_set_target_page_size		|U64	| BOTH	|		| avm_get_target_page_size				| avm_set_target_page_size
+#
+# Sysfs Entries for issuing write IOs on Target /dev/mapper/AISA.
+# This is mainly used for debugging purpose.
+# issue_write_io_on_device, issue_write_io_at_sector, issue_write_io_with_size acts
+# as input parameters for issuing a write IO on the device
+# issue_write_io is the one which actually issues WRITE IO thats why its action is 
+# defined with function avm_do_write_io() 
+#
+issue_write_io_on_device		|STRING	| BOTH	|		| NULL									| NULL
+issue_write_io_at_sector		|U64	| BOTH	|		| NULL									| NULL
+issue_write_io_with_size		|INTEGER| BOTH	|		| NULL									| NULL
+issue_write_io					|INTEGER| SHOW	|		| avm_do_write_io						| NULL
+#
+# Sysfs Entries for issuing read IOs on Target /dev/mapper/AISA.
+# This is mainly used for debugging purpose.
+# issue_read_io_on_device, issue_read_io_at_sector, issue_read_io_with_size acts
+# as input parameters for issuing a read IO on the device
+# issue_read_io is the one which actually issues READ IO thats why its action is 
+# defined with function avm_do_read_io() 
+#
+issue_read_io_on_device			|STRING	| BOTH	|		| NULL									| NULL	
+issue_read_io_at_sector			|U64	| BOTH	|		| NULL									| NULL
+issue_read_io_with_size			|INTEGER| BOTH	|		| NULL									| NULL
+issue_read_io					|INTEGER| SHOW	|		| avm_do_read_io			| NULL
+#
+# Entries for issuing Zeros on Target /dev/mapper/AISA. 
+# This is mainly used for debugging purpose.
+# issue_zero_io_on_device, issue_zero_io_at_sector, issue_zero_io_with_size acts
+# as input parameters for issuing a read IO on the device
+# issue_zero_io is the one which actually issues READ IO thats why its action is 
+# defined with function avm_do_zero_io() 
+#
+issue_zero_io_on_device			|STRING	| BOTH	|		| NULL									| NULL
+issue_zero_io_at_sector			|U64	| BOTH	|		| NULL									| NULL
+issue_zero_io_with_size			|INTEGER| BOTH	|		| NULL									| NULL
+issue_zero_io					|INTEGER| SHOW	|		| avm_do_zero_io						| NULL
+#
+# Sysfs Entries for issuing write IOs but verify with read on Target /dev/mapper/AISA
+write_verify_io					|INTEGER|SHOW	| 		| avm_do_write_verify_io				| NULL
+#
+###################################################################################################################################

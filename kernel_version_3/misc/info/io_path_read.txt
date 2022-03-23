@@ -1,0 +1,105 @@
+[  239.967509] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/aisa_init.c:81]\x0a\x0aParent bio information getting printed below for READ
+[  239.967510] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:78] ______________________________________________________ 
+[  239.967511] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:79]|                                                      |
+[  239.967512] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:80]|                 Printing bio Information             |
+[  239.967513] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:81]|                 Original READ bio -> aisa_map()                                    
+[  239.967514] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:82]|______________________________________________________|
+[  239.967515] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:26]| bio                    = ffff8807d1fd0620
+[  239.967515] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:28]| bio direction          = READ
+[  239.967517] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:29]| bio->device_name       = dm-2
+[  239.967518] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:30]| bio->device_name       = ffff8807ee4bd380 (Address)
+[  239.967519] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:31]| bio->bi_flags          = 17293822569102704657, 0xf000000000000011
+[  239.967520] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:32]| bio->bi_rw             = 0, 0x0
+[  239.967520] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:33]| bio->bi_bdev           = 0xffff8807ee4bd380
+[  239.967521] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:34]| bio->bi_vcnt           = 1
+[  239.967522] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:35]| bio->bi_cnt            = 1
+[  239.967523] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:36]| bio->bi_max_vecs       = 1
+[  239.967524] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:37]| bio->bi_sector         = 10112
+[  239.967524] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:38]| bio->bi_size           = 4096
+[  239.967525] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:39]| bio->bi_idx            = 0
+[  239.967526] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:40]| bio->bi_next           =           (null)
+[  239.967527] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:41]| bio->bi_private        = ffff8807d1fd0600
+[  239.967528] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:42]| bio->bi_pool           = ffff880036354980
+[  239.967528] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:43]| bio->bi_phys_segments  = 0
+[  239.967529] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:44]| bio->bi_seg_front_size = 0
+[  239.967530] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:45]| bio->bi_seg_back_size  = 0
+[  239.967531] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:46]| bio->bi_end_io         = ffffffffa0000d50
+[  239.967531] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:51]|                 Printing biovec Information          |
+[  239.967532] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:53]|\x09bio->bi_io_vec->bv_offset = 0
+[  239.967533] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:54]|\x09bio->bi_io_vec->bv_len    = 4096
+[  239.967534] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:55]|\x09bio->bi_io_vec->bv_page   = ffffea001ed2ac00
+[  239.967535] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:57]|\x09bio->bi_io_vec->bv_page   = ffff8807b4ab0000 (kmap)
+[  239.967535] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:59]
+[  239.967536] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:85] ______________________________________________________ 
+[  239.967537] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/utils.c:86]|______________________________________________________|
+[  239.967539] CPU: 2 PID: 4583 Comm: systemd-udevd Tainted: GF          O--------------   3.10.0-123.el7.x86_64 #1
+[  239.967540] Hardware name:                  /DH77EB, BIOS EBH7710H.86A.0100.2013.0312.1351 03/12/2013
+[  239.967541]  ffff8807b4a31c70 00000000a7ba436d ffff8807b4ea78e8 ffffffff815e19ba
+[  239.967543]  ffff8807b4ea7908 ffffffffa083f26b ffff8807d1fd0600 ffff8807d1fd0620
+[  239.967544]  ffff8807b4ea7940 ffffffffa0000c7e ffff8807d1fd0b00 0000000000000001
+[  239.967546] Call Trace:
+[  239.967551]  [<ffffffff815e19ba>] dump_stack+0x19/0x1b
+[  239.967555]  [<ffffffffa083f26b>] aisa_map+0x26b/0x2a0 [dzaisa]
+[  239.967575]  [<ffffffffa0000c7e>] __map_bio+0x3e/0x110 [dm_mod]
+[  239.967586]  [<ffffffffa0001a1f>] __clone_and_map_data_bio+0x14f/0x230 [dm_mod]
+[  239.967590]  [<ffffffffa0001e77>] __split_and_process_bio+0x377/0x4f0 [dm_mod]
+[  239.967593]  [<ffffffff81290000>] ? blk_pm_runtime_init+0x30/0x40
+[  239.967597]  [<ffffffffa00020ec>] dm_request+0xfc/0x1a0 [dm_mod]
+[  239.967599]  [<ffffffff81290812>] generic_make_request+0xe2/0x130
+[  239.967600]  [<ffffffff812908d1>] submit_bio+0x71/0x150
+[  239.967602]  [<ffffffff811e75ae>] ? bio_alloc_bioset+0x1be/0x2e0
+[  239.967604]  [<ffffffff811e25b3>] _submit_bh+0x143/0x220
+[  239.967606]  [<ffffffff811e5037>] block_read_full_page+0x217/0x350
+[  239.967607]  [<ffffffff811e8870>] ? I_BDEV+0x10/0x10
+[  239.967611]  [<ffffffff811e8fa8>] blkdev_readpage+0x18/0x20
+[  239.967613]  [<ffffffff8114df3a>] __do_page_cache_readahead+0x23a/0x250
+[  239.967615]  [<ffffffff8114e439>] force_page_cache_readahead+0x79/0xc0
+[  239.967617]  [<ffffffff8114e4c3>] page_cache_sync_readahead+0x43/0x50
+[  239.967619]  [<ffffffff81142e7b>] generic_file_aio_read+0x1ab/0x750
+[  239.967621]  [<ffffffff811e944c>] blkdev_aio_read+0x4c/0x70
+[  239.967623]  [<ffffffff811af29d>] do_sync_read+0x8d/0xd0
+[  239.967625]  [<ffffffff811af97c>] vfs_read+0x9c/0x170
+[  239.967627]  [<ffffffff811b04a8>] SyS_read+0x58/0xb0
+[  239.967629]  [<ffffffff815f2119>] system_call_fastpath+0x16/0x1b
+[  239.967631] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/memory_pool.c:287]IO Info Space Allocated ffff8807b4a31d88
+[  239.967633] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/read.c:368]Child request getting queued in parent's local context
+[  239.969578] AISA:[/aisa/aisa_tree/src/kernel/dmtarget/dedupe.c:649]processIO:IOREQUEST->bio=ffff8807cf6cdb00
+[  239.969580] AISA:[INFO]lba_table_lock acquired
+[  242.972570] AISA:[INFO]hash_table_lock acquired
+[  245.975567] AISA:[INFO]pba_table_lock acquired
+[  247.977583] BUG: unable to handle kernel paging request at ffffc91dff068d22
+[  247.977631] IP: [<ffffffffa0849a56>] dz_process_read_io+0x1d6/0x2b0 [dzaisa]
+[  247.977676] PGD 7fe844067 PUD 0 
+[  247.977700] Oops: 0000 [#1] SMP 
+[  247.977723] Modules linked in: dzaisa(OF) vfat fat bnep bluetooth rfkill ipt_MASQUERADE xt_CHECKSUM fuse target_core_mod ip6t_rpfilter ip6t_REJECT ipt_REJECT xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw iptable_filter ip_tables sg raid456 async_raid6_recov async_memcpy async_pq raid6_pq async_xor xor async_tx snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_codec_generic snd_hda_intel snd_hda_codec snd_hwdep coretemp kvm_intel kvm snd_seq crct10dif_pclmul snd_seq_device crc32_pclmul crc32c_intel snd_pcm ghash_clmulni_intel
+[  247.978192]  iTCO_wdt iTCO_vendor_support lpc_ich ppdev snd_page_alloc snd_timer snd soundcore shpchp aesni_intel lrw gf128mul glue_helper ablk_helper cryptd mfd_core pcspkr i2c_i801 mperf mei_me mei parport_pc parport wmi nfsd auth_rpcgss nfs_acl lockd sunrpc uinput xfs libcrc32c sd_mod sr_mod crc_t10dif cdrom crct10dif_common usb_storage i915 ahci libahci i2c_algo_bit e1000e drm_kms_helper drm libata r8169 ptp mii pps_core i2c_core video dm_mirror dm_region_hash dm_log dm_mod
+[  247.978505] CPU: 2 PID: 4585 Comm: rtpool_1/16 Tainted: GF          O--------------   3.10.0-123.el7.x86_64 #1
+[  247.978553] Hardware name:                  /DH77EB, BIOS EBH7710H.86A.0100.2013.0312.1351 03/12/2013
+[  247.978598] task: ffff8807bddb5b00 ti: ffff8807b4ab2000 task.ti: ffff8807b4ab2000
+[  247.978635] RIP: 0010:[<ffffffffa0849a56>]  [<ffffffffa0849a56>] dz_process_read_io+0x1d6/0x2b0 [dzaisa]
+[  247.978686] RSP: 0018:ffff8807b4ab3e70  EFLAGS: 00010216
+[  247.978713] RAX: ffffc91dff068d21 RBX: ffff8807b4a31d88 RCX: 0000001df7b75d21
+[  247.978748] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffc900074f3000
+[  247.978782] RBP: ffff8807b4ab3e88 R08: 0000000000000286 R09: 0000000000000018
+[  247.978817] R10: 000000000000c32c R11: 0000000000000002 R12: 00000001ff729fcf
+[  247.978851] R13: ffffc90007722160 R14: ffff8807f25bbd18 R15: ffff8807f25bbcd8
+[  247.978886] FS:  0000000000000000(0000) GS:ffff88081f300000(0000) knlGS:0000000000000000
+[  247.978925] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  247.978954] CR2: ffffc91dff068d22 CR3: 00000007f16f5000 CR4: 00000000001407e0
+[  247.978988] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  247.979023] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[  247.979057] Stack:
+[  247.979068]  ffff8807f25bbc00 ffff8807bcb65000 ffff8807f25bbc38 ffff8807b4ab3ec0
+[  247.979111]  ffffffffa08416e7 ffff8807bbd6fc38 ffff8807bcb65000 ffffffffa0841680
+[  247.979155]  0000000000000000 0000000000000000 ffff8807b4ab3f48 ffffffff81085aef
+[  247.979198] Call Trace:
+[  247.979217]  [<ffffffffa08416e7>] dz_io_daemon+0x67/0x100 [dzaisa]
+[  247.979252]  [<ffffffffa0841680>] ? dz_thread_exit+0x80/0x80 [dzaisa]
+[  247.979287]  [<ffffffff81085aef>] kthread+0xcf/0xe0
+[  247.979313]  [<ffffffff81085a20>] ? kthread_create_on_node+0x140/0x140
+[  247.979348]  [<ffffffff815f206c>] ret_from_fork+0x7c/0xb0
+[  247.979376]  [<ffffffff81085a20>] ? kthread_create_on_node+0x140/0x140
+[  247.979408] Code: b6 50 0d 0f b6 40 0e 48 c1 e2 18 83 e0 01 48 09 ca 48 c1 e0 20 48 09 d0 49 89 c4 74 45 4c 89 e1 48 c1 e1 04 4c 29 e1 48 8d 04 0f <0f> b6 48 01 0f b6 10 48 c1 e1 08 48 09 d1 0f b6 50 02 48 c1 e2 
+[  247.979637] RIP  [<ffffffffa0849a56>] dz_process_read_io+0x1d6/0x2b0 [dzaisa]
+[  247.979677]  RSP <ffff8807b4ab3e70>
+[  247.979695] CR2: ffffc91dff068d22

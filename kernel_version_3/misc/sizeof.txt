@@ -1,0 +1,63 @@
+[aisa@localhost ~]$ avm sizeof
+[14:42:57][DEBUG] Config File /etc/datazaid/avm.conf exist
+[14:42:57][INFO ] Config file /etc/datazaid/avm.conf populated
+#sysfs_avm_get_sizeof_datastructures : 
+
+====================================
+Basic Data Structures
+====================================
+Size of int                      = 4
+Size of long int                 = 8
+Size of long unsigned int        = 8
+Size of Long                     = 8
+Size of U64                      = 8
+Size of unsigned long            = 8
+Size of unsigned long long       = 8
+Size of signed long              = 8
+Size of signed long long         = 8
+Size of long long unsigned int   = 8
+Size of long long signed int     = 8
+
+============================================
+Kernel Data Structures
+============================================
+Size of struct bio               = 136 bytes
+Size of struct bio_vec           = 16 bytes
+Size of struct bio_set           = 112 bytes
+Size of struct block_device      = 240 bytes
+Size of struct list_head         = 16 bytes
+Size of struct dm_dev            = 32 bytes
+Size of struct dm_target         = 88 bytes
+Size of struct page              = 64 bytes
+Size of struct completion        = 32 bytes
+Size of struct radix_tree_root   = 16 bytes
+
+===================================================
+DataZaid Data Structures
+===================================================
+Size of struct dz_bitmap_s             = 32 bytes
+Size of struct dz_target_object_s      = 344 bytes
+Size of struct dz_target_device_s      = 864 bytes
+Size of struct dz_dedupe_volume_s      = 464 bytes
+Size of struct dz_object_list_s        = 32 bytes
+Size of struct dz_bvec_holder_s        = 16 bytes
+Size of struct dz_iorequest_s          = 152 bytes
+Size of struct dz_dedupe_info_s        = 80 bytes
+Size of struct dz_data_pages_s         = 16 bytes
+Size of union  dz_lba_block_s          = 37 bytes
+Size of union  dz_hash_block_s         = 9 bytes
+Size of union  dz_pba_block_s          = 24 bytes
+Size of union  dz_fec_data_write_s     = 4188 bytes
+Size of struct dz_fec_table_s          = 40 bytes
+Size of struct dz_metadata_disk_block_s= 64 bytes
+Size of struct dz_metadata_lock_s      = 4 bytes
+Size of struct dz_completion_s         = 40 bytes
+Size of struct dz_ddvol_lba_block_s    = 12 bytes
+Size of struct dz_bec_request_s        = 40 bytes
+Size of struct dz_bec_node_s           = 40 bytes
+Size of struct dz_hash_s               = 16 bytes
+Size of struct dz_superblock_s         = 432 bytes
+Size of struct dz_job_s                = 56 bytes
+Size of struct dz_thread_s             = 64 bytes
+Size of struct dz_thread_pool_s        = 304 bytes
+

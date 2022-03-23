@@ -1,0 +1,244 @@
+include $(DZ_PROJECT_PATH)/include.mk
+
+#########################################################################
+# Base Engine Source Files
+#########################################################################
+
+SRC_DIR                     := base_engine
+BASE_ENGINE_SRC_FILES       := $(SRC_DIR)/aisa_init.c
+SRC_FILES                   += $(BASE_ENGINE_SRC_FILES)
+
+#########################################################################
+# Hash Engine Source Files
+#########################################################################
+
+SRC_DIR                     := hash_engine
+HASH_ENGINE_SRC_FILES       := $(SRC_DIR)/hash_engine_murmur3.c
+SRC_FILES                   += $(HASH_ENGINE_SRC_FILES)
+
+#########################################################################
+# MetaData(MD) Engine Source Files
+#########################################################################
+
+SRC_DIR                     := md_engine
+MD_ENGINE_SRC_FILES         := $(SRC_DIR)/md_engine.c
+SRC_FILES                   += $(MD_ENGINE_SRC_FILES)
+
+#########################################################################
+# Volume Engine Source Files
+#########################################################################
+
+SRC_DIR                     := volume_engine
+VOLUME_ENGINE_SRC_FILES     := $(SRC_DIR)/volume_engine.c
+VOLUME_ENGINE_SRC_FILES     += $(SRC_DIR)/volume_engine_datavols.c
+VOLUME_ENGINE_SRC_FILES     += $(SRC_DIR)/volume_engine_vmvols.c
+VOLUME_ENGINE_SRC_FILES     += $(SRC_DIR)/volume_engine_tables.c
+VOLUME_ENGINE_SRC_FILES     += $(SRC_DIR)/volume_engine_snapshot.c
+#SRC_FILES                   += $(VOLUME_ENGINE_SRC_FILES)
+
+#########################################################################
+# Dedupe Engine Source Files
+#########################################################################
+
+SRC_DIR                     := dedupe_engine
+DEDUPE_ENGINE_SRC_FILES     := $(SRC_DIR)/dedupe_engine.c
+DEDUPE_ENGINE_SRC_FILES     += $(SRC_DIR)/dedupe_engine_tables.c
+DEDUPE_ENGINE_SRC_FILES     += $(SRC_DIR)/dedupe_engine_read.c
+DEDUPE_ENGINE_SRC_FILES     += $(SRC_DIR)/dedupe_engine_write.c
+DEDUPE_ENGINE_SRC_FILES     += $(SRC_DIR)/dedupe_engine_pools.c
+DEDUPE_ENGINE_SRC_FILES     += $(SRC_DIR)/dedupe_engine_hash.c
+SRC_FILES                   += $(DEDUPE_ENGINE_SRC_FILES)
+
+#########################################################################
+# Frontend Cache Engine Source Files
+#########################################################################
+
+SRC_DIR                     := fec_engine
+FEC_ENGINE_SRC_FILES        := $(SRC_DIR)/fec_engine.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_tables.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_align_read.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_align_write.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_write.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_read.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_flush.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_replay.c
+FEC_ENGINE_SRC_FILES        += $(SRC_DIR)/fec_engine_thread_pool.c
+SRC_FILES                   += $(FEC_ENGINE_SRC_FILES)
+
+VI_FILES                    := $(SRC_FILES)
+
+#########################################################################
+# Backend Cache Engine Source Files
+#########################################################################
+
+SRC_DIR                     := bec_engine
+BEC_ENGINE_SRC_FILES        := $(SRC_DIR)/bec_engine.c
+BEC_ENGINE_SRC_FILES        += $(SRC_DIR)/bec_engine_radix_tree.c
+BEC_ENGINE_SRC_FILES        += $(SRC_DIR)/bec_engine_mempool.c
+SRC_FILES                   += $(BEC_ENGINE_SRC_FILES)
+
+#########################################################################
+# Infrastructure Engine Source Files
+#########################################################################
+
+SRC_DIR                     := infra_engine
+INFRA_ENGINE_SRC_FILES      := $(SRC_DIR)/infra_engine.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_object.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_locks.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_memory_pool.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_thread_pool.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_iorequest.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_bio_read.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_bio_write.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_utils.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_experiment.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)/infra_engine_experiment_data.c
+SRC_FILES                   += $(INFRA_ENGINE_SRC_FILES)
+
+#########################################################################
+# Sysfs Engine Source Files
+#########################################################################
+
+SRC_DIR                     := sysfs_engine
+SYSFS_ENGINE_SRC_FILES      := $(SRC_DIR)/sysfs_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)/sysfs_engine_functions.c
+SRC_FILES                   += $(SYSFS_ENGINE_SRC_FILES)
+
+#########################################################################
+# Kernel Module Generation
+#########################################################################
+
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
+EXTRA_CFLAGS                +=-g -I $(DZ_HEADERS_PATH) -I $(DZ_HASH_PATH) -I . -DDZ_BIT_SPIN_LOCK
+
+KERNEL_MODULE_NAME           = datazaid_fvm_aisa_target_module
+$(KERNEL_MODULE_NAME)-objs   = $(OBJ_FILES)
+obj-m                       := $(KERNEL_MODULE_NAME).o
+
+.PHONY: subdirs $(DZ_SUBDIRS)
+
+subdirs:sysfs_engine
+
+$(sysfs_engine):
+	$(MAKE) -C $@
+	
+
+all:subdirs tag
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+clean:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	rm -rf $(OBJ_FILES)
+	rm -rf objdump.txt
+
+ca:log clean all
+	
+
+. PHONY fvm:
+	fvm aisa
+lsmod:log
+	lsmod |grep datazaid_fvm_aisa_module
+
+ins:log
+	insmod datazaid_fvm_aisa_target_module.ko
+	#fvm aisa
+
+drm:log
+	dmsetup remove AISA
+	rmmod datazaid_fvm_aisa_target_module.ko
+
+dmr:log
+	dmsetup remove AISA
+	rmmod datazaid_fvm_aisa_target_module.ko
+
+rm:log
+	rmmod datazaid_fvm_aisa_target_module.ko
+
+ls:lsmod
+	dmsetup ls
+
+clear:log
+	#dmsetup -f remove aisavfv
+	losetup -D
+	rmmod datazaid_fvm_aisa_module.ko
+
+.PHONY: tags tag
+
+tag:tags
+
+tags:
+	rm -rf tags
+	ctags -R
+	
+
+log:
+	logger `date`
+
+
+ca:clean all
+
+loc:
+	wc -l headers/*.h $(SRC_FILES)
+
+obj:objdump
+
+objdump:
+	objdump -D -d -S  $(KERNEL_MODULE_NAME).ko > objdump.txt
+
+#########################################################################
+# Miscellaneous Commands
+#########################################################################
+
+.PHONY: dde fec bec db
+dde:
+	cat /sys/kernel/fvm/dedupe
+
+fec:
+	cat /sys/kernel/fvm/fec
+
+bec:
+	cat /sys/kernel/fvm/bec
+
+db:
+	cat /sys/kernel/fvm/bec
+	cat /sys/kernel/fvm/dedupe
+	cat /sys/kernel/fvm/fec
+	dmesg
+
+zero:
+	#dd if=/dev/zero of=/dev/mapper/AISA bs=8192 
+	dd if=/dev/zero of=/dev/md0 bs=8192 count=1024
+	dd if=/dev/zero of=/dev/md1 bs=8192 count=1024
+
+#Clean /var/crash
+varc:
+	rm -rf /var/crash/*
+	sync
+
+.PHONY: configfs
+configfs:
+	mount -t configfs none /config
+
+vi:
+	gvim -p  fec_engine_flush.c $(VI_FILES)
+
+#ln -s /aisa/aisa_tree/src/storage_engine/user/cli/AISA_FlashVol.py fvm
+
+backup:
+	date +'%d_%m_%Y_%H_%M_%S'
+	(cd ../../../../; pwd)
+	pwd
+
+pagec:
+	echo 1 > /proc/sys/vm/drop_caches
+	sync
+	
+create:ins
+	fvm d vol_normal
+	fvm dsr vol_sr vol_normal
+
+delete:
+	dmsetup remove vol_sr
+	dmsetup remove vol_normal
+	dmsetup remove AISA
+	rmmod datazaid_fvm_aisa_module.ko

@@ -1,0 +1,336 @@
+[  946.799257] AISA:Support required.
+[  946.799260]  ______________________________________________________ 
+[  946.799261] |                                                      |
+[  946.799262] |                 Printing bio Information             |
+[  946.799263] |                 Parent bio                                    
+[  946.799263] |______________________________________________________|
+[  946.799265] | bio                    = ffff8807c6777520
+[  946.799265] | bio direction          = READ
+[  946.799267] | bio->device_name       = md1
+[  946.799267] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799268] | bio->bi_flags          = 17293822569102704657, 0xf000000000000011
+[  946.799269] | bio->bi_rw             = 0, 0x0
+[  946.799270] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799271] | bio->bi_vcnt           = 2
+[  946.799271] | bio->bi_cnt            = 1
+[  946.799272] | bio->bi_max_vecs       = 4
+[  946.799272] | bio->bi_sector         = 1284
+[  946.799273] | bio->bi_size           = 3072
+[  946.799274] | bio->bi_idx            = 0
+[  946.799275] | bio->bi_next           =           (null)
+[  946.799275] | bio->bi_private        = ffff8807c6777500
+[  946.799276] | bio->bi_pool           = ffff8807dcd04a80
+[  946.799276] | bio->bi_phys_segments  = 0
+[  946.799277] | bio->bi_seg_front_size = 0
+[  946.799277] | bio->bi_seg_back_size  = 0
+[  946.799278] | bio->bi_end_io         = ffffffffa0000d50
+[  946.799279] |                 Printing biovec Information          |
+[  946.799279] |\x09bio->bi_io_vec->bv_offset = 3072
+[  946.799280] |\x09bio->bi_io_vec->bv_len    = 1024
+[  946.799281] |\x09bio->bi_io_vec->bv_page   = ffffea00176d8b00
+[  946.799281] |\x09bio->bi_io_vec->bv_page   = ffff8805db62c000 (kmap)
+[  946.799282] 
+[  946.799282] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799283] |\x09bio->bi_io_vec->bv_len    = 2048
+[  946.799284] |\x09bio->bi_io_vec->bv_page   = ffffea00176d8ac0
+[  946.799284] |\x09bio->bi_io_vec->bv_page   = ffff8805db62b000 (kmap)
+[  946.799285] 
+[  946.799285]  ______________________________________________________ 
+[  946.799286] |______________________________________________________|
+[  946.799287]  ______________________________________________________ 
+[  946.799287] |                                                      |
+[  946.799288] |                 Printing bio Information             |
+[  946.799289] |                 Child  bio                                    
+[  946.799289] |______________________________________________________|
+[  946.799290] | bio                    = ffff8807c6777b00
+[  946.799290] | bio direction          = READ
+[  946.799291] | bio->device_name       = md1
+[  946.799292] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799293] | bio->bi_flags          = 1, 0x1
+[  946.799293] | bio->bi_rw             = 0, 0x0
+[  946.799294] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799294] | bio->bi_vcnt           = 1
+[  946.799295] | bio->bi_cnt            = 1
+[  946.799296] | bio->bi_max_vecs       = 1
+[  946.799296] | bio->bi_sector         = 1280
+[  946.799297] | bio->bi_size           = 4096
+[  946.799297] | bio->bi_idx            = 0
+[  946.799298] | bio->bi_next           = ffff8807c6777520
+[  946.799298] | bio->bi_private        = ffff8807ae30b430
+[  946.799299] | bio->bi_pool           = ffff8807dae7f880
+[  946.799299] | bio->bi_phys_segments  = 1
+[  946.799300] | bio->bi_seg_front_size = 0
+[  946.799300] | bio->bi_seg_back_size  = 0
+[  946.799301] | bio->bi_end_io         = ffffffffa0867f90
+[  946.799302] |                 Printing biovec Information          |
+[  946.799302] AISA:Support required.
+[  946.799303]  ______________________________________________________ 
+[  946.799303] |                                                      |
+[  946.799304] |                 Printing bio Information             |
+[  946.799305] |                 Parent bio                                    
+[  946.799305] |______________________________________________________|
+[  946.799306] | bio                    = ffff8807b7872120
+[  946.799307] | bio direction          = READ
+[  946.799308] | bio->device_name       = md1
+[  946.799309] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799310] | bio->bi_flags          = 17293822569102704657, 0xf000000000000011
+[  946.799311] | bio->bi_rw             = 0, 0x0
+[  946.799311] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799312] | bio->bi_vcnt           = 2
+[  946.799313] | bio->bi_cnt            = 1
+[  946.799313] | bio->bi_max_vecs       = 4
+[  946.799315] | bio->bi_sector         = 2356
+[  946.799315] | bio->bi_size           = 3072
+[  946.799316] | bio->bi_idx            = 0
+[  946.799317] | bio->bi_next           =           (null)
+[  946.799318] | bio->bi_private        = ffff8807b7872100
+[  946.799318] | bio->bi_pool           = ffff8807dcd04a80
+[  946.799318] | bio->bi_phys_segments  = 0
+[  946.799319] | bio->bi_seg_front_size = 0
+[  946.799320] | bio->bi_seg_back_size  = 0
+[  946.799320] | bio->bi_end_io         = ffffffffa0000d50
+[  946.799321] |                 Printing biovec Information          |
+[  946.799322] |\x09bio->bi_io_vec->bv_offset = 2048
+[  946.799322] |\x09bio->bi_io_vec->bv_len    = 2048
+[  946.799323] |\x09bio->bi_io_vec->bv_page   = ffffea001f4b8e80
+[  946.799324] |\x09bio->bi_io_vec->bv_page   = ffff8807d2e3a000 (kmap)
+[  946.799324] 
+[  946.799325] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799326] |\x09bio->bi_io_vec->bv_len    = 1024
+[  946.799326] |\x09bio->bi_io_vec->bv_page   = ffffea001f2fe780
+[  946.799327] |\x09bio->bi_io_vec->bv_page   = ffff8807cbf9e000 (kmap)
+[  946.799327] 
+[  946.799328]  ______________________________________________________ 
+[  946.799329] |______________________________________________________|
+[  946.799329]  ______________________________________________________ 
+[  946.799330] |                                                      |
+[  946.799331] |                 Printing bio Information             |
+[  946.799331] |                 Child  bio                                    
+[  946.799332] |______________________________________________________|
+[  946.799332] | bio                    = ffff8807c6777300
+[  946.799333] | bio direction          = READ
+[  946.799334] | bio->device_name       = md1
+[  946.799334] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799335] | bio->bi_flags          = 1, 0x1
+[  946.799336] | bio->bi_rw             = 0, 0x0
+[  946.799337] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799337] | bio->bi_vcnt           = 1
+[  946.799338] | bio->bi_cnt            = 1
+[  946.799338] | bio->bi_max_vecs       = 1
+[  946.799339] AISA:Support required.
+[  946.799340]  ______________________________________________________ 
+[  946.799341] | bio->bi_sector         = 2352
+[  946.799341] |                                                      |
+[  946.799341] | bio->bi_size           = 4096
+[  946.799342] |                 Printing bio Information             |
+[  946.799342] | bio->bi_idx            = 0
+[  946.799343] |                 Parent bio                                    
+[  946.799344] | bio->bi_next           = ffff8807b7872120
+[  946.799344] |______________________________________________________|
+[  946.799345] | bio->bi_private        = ffff8807ae30a770
+[  946.799346] | bio                    = ffff8807b7872720
+[  946.799346] | bio->bi_pool           = ffff8807dae7f880
+[  946.799346] | bio->bi_phys_segments  = 1
+[  946.799347] | bio direction          = READ
+[  946.799347] | bio->bi_seg_front_size = 0
+[  946.799348] | bio->device_name       = md1
+[  946.799348] | bio->bi_seg_back_size  = 0
+[  946.799349] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799349] | bio->bi_end_io         = ffffffffa0867f90
+[  946.799350] | bio->bi_flags          = 17293822569102704657, 0xf000000000000011
+[  946.799350] |                 Printing biovec Information          |
+[  946.799351] | bio->bi_rw             = 0, 0x0
+[  946.799351] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799352] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799352] |\x09bio->bi_io_vec->bv_len    = 4096
+[  946.799353] | bio->bi_vcnt           = 2
+[  946.799353] |\x09bio->bi_io_vec->bv_page   = ffffea001eb52500
+[  946.799354] | bio->bi_cnt            = 1
+[  946.799354] |\x09bio->bi_io_vec->bv_page   = ffff8807ad494000 (kmap)
+[  946.799355] | bio->bi_max_vecs       = 4
+[  946.799355] 
+[  946.799356]  ______________________________________________________ 
+[  946.799357] | bio->bi_sector         = 412
+[  946.799357] |______________________________________________________|
+[  946.799358] | bio->bi_size           = 3072
+[  946.799358] AISA:partial_bytes_head = 2048, 0x800
+[  946.799359] | bio->bi_idx            = 0
+[  946.799360] AISA:sector_pos_in_lba = 2048, 0x800
+[  946.799360] | bio->bi_next           =           (null)
+[  946.799361] AISA:lba = 294, 0x126
+[  946.799362] | bio->bi_private        = ffff8807b7872700
+[  946.799362] | bio->bi_pool           = ffff8807dcd04a80
+[  946.799362] | bio->bi_phys_segments  = 0
+[  946.799363] | bio->bi_seg_front_size = 0
+[  946.799364] | bio->bi_seg_back_size  = 0
+[  946.799364] | bio->bi_end_io         = ffffffffa0000d50
+[  946.799365] |                 Printing biovec Information          |
+[  946.799366] |\x09bio->bi_io_vec->bv_offset = 3072
+[  946.799366] |\x09bio->bi_io_vec->bv_len    = 1024
+[  946.799367] |\x09bio->bi_io_vec->bv_page   = ffffea001eeccfc0
+[  946.799368] |\x09bio->bi_io_vec->bv_page   = ffff8807bb33f000 (kmap)
+[  946.799368] 
+[  946.799369] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799369] |\x09bio->bi_io_vec->bv_len    = 2048
+[  946.799370] |\x09bio->bi_io_vec->bv_page   = ffffea001f036700
+[  946.799371] |\x09bio->bi_io_vec->bv_page   = ffff8807c0d9c000 (kmap)
+[  946.799371] 
+[  946.799372]  ______________________________________________________ 
+[  946.799372] |______________________________________________________|
+[  946.799373]  ______________________________________________________ 
+[  946.799374] |                                                      |
+[  946.799375] |                 Printing bio Information             |
+[  946.799376] |                 Child  bio                                    
+[  946.799376] |______________________________________________________|
+[  946.799377] | bio                    = ffff8807c6777400
+[  946.799378] | bio direction          = READ
+[  946.799378] | bio->device_name       = md1
+[  946.799379] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799380] | bio->bi_flags          = 1, 0x1
+[  946.799380] | bio->bi_rw             = 0, 0x0
+[  946.799381] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799382] | bio->bi_vcnt           = 1
+[  946.799382] | bio->bi_cnt            = 1
+[  946.799383] | bio->bi_max_vecs       = 1
+[  946.799384] | bio->bi_sector         = 408
+[  946.799385] | bio->bi_size           = 4096
+[  946.799385] | bio->bi_idx            = 0
+[  946.799386] | bio->bi_next           = ffff8807b7872720
+[  946.799387] | bio->bi_private        = ffff8807ae30a440
+[  946.799387] | bio->bi_pool           = ffff8807dae7f880
+[  946.799388] | bio->bi_phys_segments  = 1
+[  946.799388] | bio->bi_seg_front_size = 0
+[  946.799389] | bio->bi_seg_back_size  = 0
+[  946.799389] | bio->bi_end_io         = ffffffffa0867f90
+[  946.799390] |                 Printing biovec Information          |
+[  946.799391] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799391] |\x09bio->bi_io_vec->bv_len    = 4096
+[  946.799392] |\x09bio->bi_io_vec->bv_page   = ffffea001eb838c0
+[  946.799393] |\x09bio->bi_io_vec->bv_page   = ffff8807ae0e3000 (kmap)
+[  946.799393] 
+[  946.799394]  ______________________________________________________ 
+[  946.799394] |______________________________________________________|
+[  946.799395] AISA:partial_bytes_head = 2048, 0x800
+[  946.799396] AISA:sector_pos_in_lba = 2048, 0x800
+[  946.799397] AISA:lba = 51, 0x33
+[  946.799404] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799405] |\x09bio->bi_io_vec->bv_len    = 4096
+[  946.799406] |\x09bio->bi_io_vec->bv_page   = ffffea001ebbab80
+[  946.799406] |\x09bio->bi_io_vec->bv_page   = ffff8807aeeae000 (kmap)
+[  946.799407] 
+[  946.799407]  ______________________________________________________ 
+[  946.799408] |______________________________________________________|
+[  946.799409] AISA:partial_bytes_head = 2048, 0x800
+[  946.799410] AISA:sector_pos_in_lba = 2048, 0x800
+[  946.799411] AISA:lba = 160, 0xa0
+[  946.799411] AISA:Support required.
+[  946.799411]  ______________________________________________________ 
+[  946.799412] |                                                      |
+[  946.799412] |                 Printing bio Information             |
+[  946.799413] |                 Parent bio                                    
+[  946.799414] |______________________________________________________|
+[  946.799414] | bio                    = ffff8807c946a520
+[  946.799415] | bio direction          = READ
+[  946.799416] | bio->device_name       = md1
+[  946.799416] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799417] | bio->bi_flags          = 17293822569102704657, 0xf000000000000011
+[  946.799418] | bio->bi_rw             = 0, 0x0
+[  946.799419] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799419] | bio->bi_vcnt           = 2
+[  946.799420] | bio->bi_cnt            = 1
+[  946.799421] | bio->bi_max_vecs       = 4
+[  946.799422] | bio->bi_sector         = 1980
+[  946.799423] | bio->bi_size           = 3072
+[  946.799423] | bio->bi_idx            = 0
+[  946.799424] | bio->bi_next           =           (null)
+[  946.799425] | bio->bi_private        = ffff8807c946a500
+[  946.799425] | bio->bi_pool           = ffff8807dcd04a80
+[  946.799425] | bio->bi_phys_segments  = 0
+[  946.799426] | bio->bi_seg_front_size = 0
+[  946.799427] | bio->bi_seg_back_size  = 0
+[  946.799427] | bio->bi_end_io         = ffffffffa0000d50
+[  946.799428] |                 Printing biovec Information          |
+[  946.799429] |\x09bio->bi_io_vec->bv_offset = 3072
+[  946.799429] |\x09bio->bi_io_vec->bv_len    = 1024
+[  946.799430] |\x09bio->bi_io_vec->bv_page   = ffffea00176d92c0
+[  946.799431] |\x09bio->bi_io_vec->bv_page   = ffff8805db64b000 (kmap)
+[  946.799431] 
+[  946.799432] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799432] |\x09bio->bi_io_vec->bv_len    = 2048
+[  946.799433] |\x09bio->bi_io_vec->bv_page   = ffffea00176d9280
+[  946.799434] |\x09bio->bi_io_vec->bv_page   = ffff8805db64a000 (kmap)
+[  946.799434] 
+[  946.799435]  ______________________________________________________ 
+[  946.799436] |______________________________________________________|
+[  946.799436]  ______________________________________________________ 
+[  946.799437] |                                                      |
+[  946.799438] |                 Printing bio Information             |
+[  946.799439] |                 Child  bio                                    
+[  946.799440] |______________________________________________________|
+[  946.799440] | bio                    = ffff8807c654dc00
+[  946.799441] | bio direction          = READ
+[  946.799441] | bio->device_name       = md1
+[  946.799442] | bio->device_name       = ffff8807ee8d5d40 (Address)
+[  946.799443] | bio->bi_flags          = 1, 0x1
+[  946.799443] | bio->bi_rw             = 0, 0x0
+[  946.799444] | bio->bi_bdev           = 0xffff8807ee8d5d40
+[  946.799445] | bio->bi_vcnt           = 1
+[  946.799445] | bio->bi_cnt            = 1
+[  946.799446] | bio->bi_max_vecs       = 1
+[  946.799448] | bio->bi_sector         = 1976
+[  946.799448] | bio->bi_size           = 4096
+[  946.799449] | bio->bi_idx            = 0
+[  946.799450] | bio->bi_next           = ffff8807c946a520
+[  946.799450] | bio->bi_private        = ffff8807adbafcb0
+[  946.799451] | bio->bi_pool           = ffff8807dae7f880
+[  946.799451] | bio->bi_phys_segments  = 1
+[  946.799452] | bio->bi_seg_front_size = 0
+[  946.799453] | bio->bi_seg_back_size  = 0
+[  946.799453] | bio->bi_end_io         = ffffffffa0867f90
+[  946.799454] |                 Printing biovec Information          |
+[  946.799454] |\x09bio->bi_io_vec->bv_offset = 0
+[  946.799455] |\x09bio->bi_io_vec->bv_len    = 4096
+[  946.799456] |\x09bio->bi_io_vec->bv_page   = ffffea001eb517c0
+[  946.799456] |\x09bio->bi_io_vec->bv_page   = ffff8807ad45f000 (kmap)
+[  946.799457] 
+[  946.799458]  ______________________________________________________ 
+[  946.799458] |______________________________________________________|
+[  946.799459] AISA:partial_bytes_head = 2048, 0x800
+[  946.799460] AISA:sector_pos_in_lba = 2048, 0x800
+[  946.799461] AISA:lba = 247, 0xf7
+[  947.799722] ------------[ cut here ]------------
+[  947.799742] kernel BUG at /aisa/aisa_tree/src/kernel/dmtarget/fec_engine_align_read.c:241!
+[  947.799764] invalid opcode: 0000 [#1] SMP 
+[  947.799779] Modules linked in: dzaisa(OF) vfat fat bnep bluetooth rfkill ipt_MASQUERADE fuse xt_CHECKSUM target_core_mod ip6t_rpfilter ip6t_REJECT ipt_REJECT xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw iptable_filter ip_tables sg raid1 raid456 async_raid6_recov async_memcpy async_pq raid6_pq async_xor xor async_tx iTCO_wdt iTCO_vendor_support ppdev coretemp kvm_intel kvm crct10dif_pclmul crc32_pclmul crc32c_intel ghash_clmulni_intel snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_codec_generic snd_hda_intel snd_hda_codec
+[  947.800027]  aesni_intel lrw gf128mul glue_helper snd_hwdep snd_seq snd_seq_device ablk_helper snd_pcm snd_page_alloc lpc_ich i2c_i801 cryptd snd_timer snd soundcore pcspkr mei_me mei mfd_core shpchp wmi parport_pc parport mperf nfsd auth_rpcgss nfs_acl lockd sunrpc uinput xfs libcrc32c sd_mod sr_mod crc_t10dif cdrom crct10dif_common usb_storage i915 i2c_algo_bit drm_kms_helper ahci libahci drm e1000e libata r8169 ptp mii i2c_core pps_core video dm_mirror dm_region_hash dm_log dm_mod
+[  947.800201] CPU: 0 PID: 5091 Comm: ddpool_2/4 Tainted: GF          O--------------   3.10.0-123.el7.x86_64 #1
+[  947.800226] Hardware name:                  /DH77EB, BIOS EBH7710H.86A.0100.2013.0312.1351 03/12/2013
+[  947.800249] task: ffff8807ee2d4440 ti: ffff8807ad420000 task.ti: ffff8807ad420000
+[  947.800268] RIP: 0010:[<ffffffffa0868208>]  [<ffffffffa0868208>] dz_far_for_partial_block_biodone_head+0x278/0x290 [dzaisa]
+[  947.800302] RSP: 0018:ffff8807ad421df0  EFLAGS: 00010246
+[  947.800316] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+[  947.800334] RDX: 0000000000000000 RSI: 0000000000000286 RDI: 0000000000000286
+[  947.800352] RBP: ffff8807ad421e60 R08: 0000000000000286 R09: 0000000000000014
+[  947.800370] R10: 0000000000001473 R11: 0000000000000000 R12: ffff8807b7872720
+[  947.800388] R13: ffff8807bb33f000 R14: ffff8807b78727a8 R15: 0000160000000000
+[  947.800407] FS:  0000000000000000(0000) GS:ffff88081f200000(0000) knlGS:0000000000000000
+[  947.800427] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  947.800442] CR2: 00007f927815d000 CR3: 00000000018ce000 CR4: 00000000001407f0
+[  947.800460] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  947.800478] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[  947.800495] Stack:
+[  947.800501]  0000000000000033 ffff8807ad43fba0 ffff8807ae30a440 ffff8807c6777488
+[  947.800524]  ffff8807c6777400 0000000000000800 ffff880000000000 ffff8807ae0e3800
+[  947.800547]  0000080000000800 ffff8807ae30a440 ffff8807c65a4940 ffff8807dad03238
+[  947.800569] Call Trace:
+[  947.800580]  [<ffffffff811e5d7d>] bio_endio+0x1d/0x30
+[  947.800596]  [<ffffffffa0865561>] dz_dedupe_io+0x41/0x80 [dzaisa]
+[  947.800615]  [<ffffffffa0870677>] dz_io_daemon+0x67/0x100 [dzaisa]
+[  947.800633]  [<ffffffffa0870610>] ? dz_thread_exit+0x80/0x80 [dzaisa]
+[  947.800652]  [<ffffffff81085aef>] kthread+0xcf/0xe0
+[  947.800666]  [<ffffffff81085a20>] ? kthread_create_on_node+0x140/0x140
+[  947.800684]  [<ffffffff815f206c>] ret_from_fork+0x7c/0xb0
+[  947.800699]  [<ffffffff81085a20>] ? kthread_create_on_node+0x140/0x140
+[  947.800715] Code: e8 05 35 d7 e0 48 8b 55 90 48 c7 c6 5d e8 87 a0 48 c7 c7 61 e8 87 a0 31 c0 48 89 d1 e8 e9 34 d7 e0 bf e8 03 00 00 e8 a8 72 80 e0 <0f> 0b b8 fb ff ff ff 85 f6 0f 44 f0 48 89 f8 48 8b 40 18 e9 c8 
+[  947.800841] RIP  [<ffffffffa0868208>] dz_far_for_partial_block_biodone_head+0x278/0x290 [dzaisa]
+[  947.800866]  RSP <ffff8807ad421df0>

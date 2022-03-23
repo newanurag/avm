@@ -1,0 +1,391 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+AISA_AISP_PREFIX_DATA_LUN	AISA_Defaults.py	/^AISA_AISP_PREFIX_DATA_LUN	= "lv_aidl_"$/;"	v
+AISA_AISP_PREFIX_VM_LUN	AISA_Defaults.py	/^AISA_AISP_PREFIX_VM_LUN		= "lv_aivl_" #For Public VMs$/;"	v
+AISA_AISP_PREFIX_VM_LUN_PVT	AISA_Defaults.py	/^AISA_AISP_PREFIX_VM_LUN_PVT	= "lvp_aivl_" #For Private VMs$/;"	v
+AISA_DATA_DISKS	AISA_AVMGlobals.py	/^AISA_DATA_DISKS       = ''; $/;"	v
+AISA_DATA_DISKS	AISA_Defaults.py	/^AISA_DATA_DISKS = 			'\/dev\/sda6  \/dev\/sda7  \/dev\/sda8  \/dev\/sda9  '$/;"	v
+AISA_DATA_DISKS	AISA_Defaults.py	/^AISA_DATA_DISKS = AISA_DATA_DISKS +	'\/dev\/sda10 \/dev\/sda11 \/dev\/sda12 \/dev\/sda13 '$/;"	v
+AISA_DATA_DISKS	AISA_Defaults.py	/^AISA_DATA_DISKS = AISA_DATA_DISKS +	'\/dev\/sda14 \/dev\/sda15 \/dev\/sda16 \/dev\/sda17 '$/;"	v
+AISA_DATA_DISKS	AISA_Defaults.py	/^AISA_DATA_DISKS = AISA_DATA_DISKS +	'\/dev\/sda18 \/dev\/sda19 \/dev\/sda20 \/dev\/sda21 '$/;"	v
+AISA_DATA_DISKS_ARRAY	AISA_AVMGlobals.py	/^AISA_DATA_DISKS_ARRAY = '\/dev\/md1'$/;"	v
+AISA_DATA_DISKS_CNT	AISA_AVMGlobals.py	/^AISA_DATA_DISKS_CNT   = 6 $/;"	v
+AISA_DATA_DISKS_CNT	AISA_Defaults.py	/^AISA_DATA_DISKS_CNT = 16$/;"	v
+AISA_DATA_LUN_POOL_PATH	AISA_Defaults.py	/^AISA_DATA_LUN_POOL_PATH			= '\/dev\/' + AISA_STORAGE_POOL_VG_NAME + '\/' + AISA_STORAGE_POOL_LV_NAME_DATA_LUN$/;"	v
+AISA_DATA_LUN_POOL_PERCENTAGE	AISA_Defaults.py	/^AISA_DATA_LUN_POOL_PERCENTAGE		= 60$/;"	v
+AISA_DATA_LUN_POOL_VG_NAME	AISA_Defaults.py	/^AISA_DATA_LUN_POOL_VG_NAME		= "vg_DATA_LUN_POOL" # It will be created on AISA_DATA_LUN_POOL_PATH$/;"	v
+AISA_DEFAULT_HYX	AISA_Defaults.py	/^AISA_DEFAULT_HYX 		= 'qemu'$/;"	v
+AISA_DEVICE_HOME	AISA_AVMCore.py	/^AISA_DEVICE_HOME				 			= "\/dev\/mapper"$/;"	v
+AISA_DEVICE_NAME	AISA_AVMCore.py	/^AISA_DEVICE_NAME				 			= "AISA"$/;"	v
+AISA_DEVICE_PATH	AISA_AVMCore.py	/^AISA_DEVICE_PATH				 			= AISA_DEVICE_HOME + "\/" + AISA_DEVICE_NAME$/;"	v
+AISA_DEV_NAME	AISA_Lio.py	/^AISA_DEV_NAME		= "\/dev\/vg_aisp\/lv_aisp"$/;"	v
+AISA_DMTARGET_BACKEND_DEVICE	AISA_Defaults.py	/^AISA_DMTARGET_BACKEND_DEVICE            = "\/dev\/md1"$/;"	v
+AISA_DMTARGET_EXPORTED_DEVICE	AISA_Defaults.py	/^AISA_DMTARGET_EXPORTED_DEVICE           = "aisp"$/;"	v
+AISA_DMTARGET_EXPORTED_SIZE	AISA_Defaults.py	/^AISA_DMTARGET_EXPORTED_SIZE             = 2097152$/;"	v
+AISA_DMTARGET_KERNEL_MODULE	AISA_Defaults.py	/^AISA_DMTARGET_KERNEL_MODULE             = "aisa_dmtarget.ko"$/;"	v
+AISA_DMTARGET_KERNEL_MODULE_PATH	AISA_Defaults.py	/^AISA_DMTARGET_KERNEL_MODULE_PATH        = "\/aisa\/current\/src\/kernel\/dmtarget"$/;"	v
+AISA_DMTARGET_NAME	AISA_Defaults.py	/^AISA_DMTARGET_NAME                      = "aisa_dmtarget"$/;"	v
+AISA_Error	AISA_Defaults.py	/^import AISA_Error$/;"	i
+AISA_LIO	AISA_Lio.py	/^class AISA_LIO:$/;"	c
+AISA_LOCAL_URI_SUFFIX	AISA_Defaults.py	/^AISA_LOCAL_URI_SUFFIX 		= ':\/\/\/system'$/;"	v
+AISA_LV_DOES_NOT_EXIST	AISA_Error.py	/^AISA_LV_DOES_NOT_EXIST	= 0$/;"	v
+AISA_LV_EXIST	AISA_Error.py	/^AISA_LV_EXIST		= 103$/;"	v
+AISA_METADATA_DISKS	AISA_AVMGlobals.py	/^AISA_METADATA_DISKS       =  ''; $/;"	v
+AISA_METADATA_DISKS_ARRAY	AISA_AVMGlobals.py	/^AISA_METADATA_DISKS_ARRAY = '\/dev\/md0'$/;"	v
+AISA_METADATA_DISKS_CNT	AISA_AVMGlobals.py	/^AISA_METADATA_DISKS_CNT   = 2 $/;"	v
+AISA_METADATA_DISK_MAGIC_NO	AISA_AVMCore.py	/^AISA_METADATA_DISK_MAGIC_NO		 			= "AISAMTDT"$/;"	v
+AISA_METADATA_DISK_MAGIC_NO	AISA_AVMGlobals.py	/^AISA_METADATA_DISK_MAGIC_NO		 			= "AISAMTDT"$/;"	v
+AISA_PV_DOES_NOT_EXIST	AISA_Error.py	/^AISA_PV_DOES_NOT_EXIST	= 0$/;"	v
+AISA_PV_EXIST	AISA_Error.py	/^AISA_PV_EXIST		= 101$/;"	v
+AISA_STORAGE_POOL_LV_NAME_DATA_LUN	AISA_Defaults.py	/^AISA_STORAGE_POOL_LV_NAME_DATA_LUN	= "lv_AISA_POOL_DATA_LUN" # LV for creating Data Lun Pool$/;"	v
+AISA_STORAGE_POOL_LV_NAME_VM_IMAGE	AISA_Defaults.py	/^AISA_STORAGE_POOL_LV_NAME_VM_IMAGE	= "lv_AISA_POOL_VM_IMAGE" # LV for creating VirtualMachine Image Pool$/;"	v
+AISA_STORAGE_POOL_PATH	AISA_Defaults.py	/^AISA_STORAGE_POOL_PATH 			= '\/dev\/mapper\/' + AISA_DMTARGET_EXPORTED_DEVICE$/;"	v
+AISA_STORAGE_POOL_SIZE	AISA_Defaults.py	/^AISA_STORAGE_POOL_SIZE 			= 40 # in GB, Just like that$/;"	v
+AISA_STORAGE_POOL_VG_NAME	AISA_Defaults.py	/^AISA_STORAGE_POOL_VG_NAME		= "vg_AISA_POOL"$/;"	v
+AISA_STORAGE_PREFIX_VM_IMAGE_LUN	AISA_Defaults.py	/^AISA_STORAGE_PREFIX_VM_IMAGE_LUN	= "lv_aivi_"$/;"	v
+AISA_STORAGE_VM_IMAGE_POOL_NAME	AISA_Defaults.py	/^AISA_STORAGE_VM_IMAGE_POOL_NAME		= "lv_aivi_pool"$/;"	v
+AISA_STORAGE_VM_IMAGE_POOL_SIZE	AISA_Defaults.py	/^AISA_STORAGE_VM_IMAGE_POOL_SIZE		= (AISA_STORAGE_POOL_SIZE \/ 2)$/;"	v
+AISA_VG_DOES_NOT_EXIST	AISA_Error.py	/^AISA_VG_DOES_NOT_EXIST	= 0$/;"	v
+AISA_VG_EXIST	AISA_Error.py	/^AISA_VG_EXIST		= 102$/;"	v
+AISA_VM_IMAGE_POOL_PATH	AISA_Defaults.py	/^AISA_VM_IMAGE_POOL_PATH			= '\/dev\/' + AISA_STORAGE_POOL_VG_NAME + '\/' + AISA_STORAGE_POOL_LV_NAME_VM_IMAGE$/;"	v
+AISA_VM_IMAGE_POOL_PERCENTAGE	AISA_Defaults.py	/^AISA_VM_IMAGE_POOL_PERCENTAGE		= (100 - AISA_DATA_LUN_POOL_PERCENTAGE)$/;"	v
+AISA_VM_IMAGE_POOL_VG_NAME	AISA_Defaults.py	/^AISA_VM_IMAGE_POOL_VG_NAME		= "vg_VM_IMAGE_POOL" # It will be created on AISA_VM_IMAGE_POOL_PATH$/;"	v
+AISA_VOLUME_PREFIX	AISA_AVMCore.py	/^AISA_VOLUME_PREFIX				 			= "\/dev\/mapper"$/;"	v
+AVM_CORE	AISA_AVMCore.py	/^class AVM_CORE():$/;"	c
+AVM_MDRAID	AISA_MDRaid.py	/^class AVM_MDRAID():$/;"	c
+CLI_DATA_DEVICE_DOES_NOT_EXIST	AISA_AVMCore.py	/^CLI_DATA_DEVICE_DOES_NOT_EXIST				= -2$/;"	v
+CLI_DATA_DEVICE_DOES_NOT_EXIST	AISA_AVMGlobals.py	/^CLI_DATA_DEVICE_DOES_NOT_EXIST				= -2$/;"	v
+CLI_DEVICES_DOES_NOT_EXIST	AISA_AVMGlobals.py	/^CLI_DEVICES_DOES_NOT_EXIST					= -4$/;"	v
+CLI_DEV_TYPE_AISA	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_AISA							= ["AISA",	"-a", "aisa"	]$/;"	v
+CLI_DEV_TYPE_ALL	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_ALL							= 	[""]$/;"	v
+CLI_DEV_TYPE_SNAPSHOT_READ	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_SNAPSHOT_READ					= ["--sread",	"-srvol"	]$/;"	v
+CLI_DEV_TYPE_SNAPSHOT_WRITE	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_SNAPSHOT_WRITE					= ["--swrite",	"-swvol"	]$/;"	v
+CLI_DEV_TYPE_VM_SNAPSHOT_READ	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_VM_SNAPSHOT_READ				= ["--vmsread",	"-vmsr"		]$/;"	v
+CLI_DEV_TYPE_VM_SNAPSHOT_WRITE	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_VM_SNAPSHOT_WRITE				= ["--vmswrite","-vmsw"		]		$/;"	v
+CLI_DEV_TYPE_VM_VOLUME	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_VM_VOLUME						= ["--vmvolume","-vmvol"	]$/;"	v
+CLI_DEV_TYPE_VOLUME	AISA_AVMGlobals.py	/^CLI_DEV_TYPE_VOLUME							= ["--volume",	"-vol"		]$/;"	v
+CLI_FAILURE	AISA_AVMCore.py	/^CLI_FAILURE									= -1$/;"	v
+CLI_FAILURE	AISA_AVMGlobals.py	/^CLI_FAILURE									= -1$/;"	v
+CLI_METADATA_DEVICE_DOES_NOT_EXIST	AISA_AVMGlobals.py	/^CLI_METADATA_DEVICE_DOES_NOT_EXIST			= -3$/;"	v
+CLI_METADDATA_DEVICE_DOES_NOT_EXIST	AISA_AVMCore.py	/^CLI_METADDATA_DEVICE_DOES_NOT_EXIST			= -3$/;"	v
+CLI_NOOP	AISA_AVMCore.py	/^CLI_NOOP									= 1$/;"	v
+CLI_NOOP	AISA_AVMGlobals.py	/^CLI_NOOP									= 1$/;"	v
+CLI_OP_TYPE_CONFIG	AISA_AVMGlobals.py	/^CLI_OP_TYPE_CONFIG							= ["--config", "conf", "config", "--conf"]$/;"	v
+CLI_OP_TYPE_CREATE	AISA_AVMGlobals.py	/^CLI_OP_TYPE_CREATE 							= ["--create", 	"-c", 	"create"	]$/;"	v
+CLI_OP_TYPE_DELETE	AISA_AVMGlobals.py	/^CLI_OP_TYPE_DELETE 							= ["--delete", 	"-d", 	"delete"	]$/;"	v
+CLI_OP_TYPE_DESTROY	AISA_AVMGlobals.py	/^CLI_OP_TYPE_DESTROY 						= ["--destroy",	"-dy", 	"destroy"	]$/;"	v
+CLI_OP_TYPE_DISKS	AISA_AVMGlobals.py	/^CLI_OP_TYPE_DISKS							= ["--disks", "disk", "disks", "--disk"]$/;"	v
+CLI_OP_TYPE_HELP	AISA_AVMGlobals.py	/^CLI_OP_TYPE_HELP 							= ["--help", 	"-h",	"help","-?"	]$/;"	v
+CLI_OP_TYPE_INFO	AISA_AVMGlobals.py	/^CLI_OP_TYPE_INFO 							= ["--info", 	"-i",	"info"		]$/;"	v
+CLI_OP_TYPE_IO	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO								= ["--io", "-io", "ior", "ioread"]$/;"	v
+CLI_OP_TYPE_IO_READ	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_READ							= ["--ior", "-ior", "ior", "ioread"]$/;"	v
+CLI_OP_TYPE_IO_READ_WRITE	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_READ_WRITE					= ["--iorw", "-iorw", "iorw", "ioreadwrite"]$/;"	v
+CLI_OP_TYPE_IO_READ_WRITE_READ	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_READ_WRITE_READ				= ["--iorwr", "-iorwr", "iorwr", "ioreadwriteread"]$/;"	v
+CLI_OP_TYPE_IO_READ_ZERO_READ	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_READ_ZERO_READ				= ["--iorzr", "-iorzr", "iorzr", "ioreadzeroread"]$/;"	v
+CLI_OP_TYPE_IO_WRITE	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_WRITE						= ["--iow", "-iow", "iow", "iowrite"]$/;"	v
+CLI_OP_TYPE_IO_WRITE_READ	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_WRITE_READ					= ["--iowr", "-iowr", "iowr", "iowriteread"]$/;"	v
+CLI_OP_TYPE_IO_ZERO	AISA_AVMGlobals.py	/^CLI_OP_TYPE_IO_ZERO							= ["--ioz", "-ioz", "ioz", "iozero"]$/;"	v
+CLI_OP_TYPE_KERNEL_MODULES	AISA_AVMGlobals.py	/^CLI_OP_TYPE_KERNEL_MODULES					= ["--kernel-modules",	"--km", "km"	]$/;"	v
+CLI_OP_TYPE_LBA	AISA_AVMGlobals.py	/^CLI_OP_TYPE_LBA								= ["--lba",		             "lba"  ]$/;"	v
+CLI_OP_TYPE_LIST	AISA_AVMGlobals.py	/^CLI_OP_TYPE_LIST 							= ["--list", 	"-l",	"ls", "list"]$/;"	v
+CLI_OP_TYPE_LOG	AISA_AVMGlobals.py	/^CLI_OP_TYPE_LOG								= ["--log", "log"]$/;"	v
+CLI_OP_TYPE_PBA	AISA_AVMGlobals.py	/^CLI_OP_TYPE_PBA								= ["--pba",		             "pba"  ]$/;"	v
+CLI_OP_TYPE_RESTART	AISA_AVMGlobals.py	/^CLI_OP_TYPE_RESTART							= ["--restart", "restart"]$/;"	v
+CLI_OP_TYPE_RMMOD	AISA_AVMGlobals.py	/^CLI_OP_TYPE_RMMOD							= ["--rmmod",	"-rm", "rm"			]$/;"	v
+CLI_OP_TYPE_SIZE	AISA_AVMGlobals.py	/^CLI_OP_TYPE_SIZE							= ["--size",	"-sz", "sz", "size"	]$/;"	v
+CLI_OP_TYPE_SIZEOF	AISA_AVMGlobals.py	/^CLI_OP_TYPE_SIZEOF							= ["--sizeof", "-so", "sof", "sizeof"]$/;"	v
+CLI_OP_TYPE_START	AISA_AVMGlobals.py	/^CLI_OP_TYPE_START							= ["--start", "start"]$/;"	v
+CLI_OP_TYPE_STATS	AISA_AVMGlobals.py	/^CLI_OP_TYPE_STATS							= ["--stats",	"-st", "st", "stats"]$/;"	v
+CLI_OP_TYPE_STATUS	AISA_AVMGlobals.py	/^CLI_OP_TYPE_STATUS 							= ["--status", 	"-s",	"status"	]$/;"	v
+CLI_OP_TYPE_STOP	AISA_AVMGlobals.py	/^CLI_OP_TYPE_STOP							= ["--stop", "stop"]$/;"	v
+CLI_OP_TYPE_SYSFS	AISA_AVMGlobals.py	/^CLI_OP_TYPE_SYSFS							= ["--sysfs", "sysfs", "--sys", "sys"]$/;"	v
+CLI_OP_TYPE_VERSION	AISA_AVMGlobals.py	/^CLI_OP_TYPE_VERSION							= ["--version", "-v",	"version"	]$/;"	v
+CLI_SUCCESS	AISA_AVMCore.py	/^CLI_SUCCESS									= 0$/;"	v
+CLI_SUCCESS	AISA_AVMGlobals.py	/^CLI_SUCCESS									= 0$/;"	v
+CONFIG_AVM_DATA_DEVICE_NAME	AISA_AVMGlobals.py	/^CONFIG_AVM_DATA_DEVICE_NAME 				= ""$/;"	v
+CONFIG_AVM_METADATA_DEVICE_NAME	AISA_AVMGlobals.py	/^CONFIG_AVM_METADATA_DEVICE_NAME 			= ""$/;"	v
+CONFIG_AVM_PASSTHROUGH_MODE	AISA_AVMGlobals.py	/^CONFIG_AVM_PASSTHROUGH_MODE	 				= ""$/;"	v
+CONFIG_AVM_PASSTHROUGH_MODE_READ	AISA_AVMGlobals.py	/^CONFIG_AVM_PASSTHROUGH_MODE_READ			= ""$/;"	v
+CONFIG_AVM_PASSTHROUGH_MODE_WRITE	AISA_AVMGlobals.py	/^CONFIG_AVM_PASSTHROUGH_MODE_WRITE			= ""$/;"	v
+DEBUG	AISA_Error.py	/^DEBUG	= 3$/;"	v
+DEVICE_TYPE_AISA	AISA_AVMCore.py	/^DEVICE_TYPE_AISA				 			= "DEVICE_TYPE_AISA"$/;"	v
+DEVICE_TYPE_DATA_VOLUME	AISA_AVMCore.py	/^DEVICE_TYPE_DATA_VOLUME				 		= "DEVICE_TYPE_DATA_VOLUME"$/;"	v
+DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ	AISA_AVMCore.py	/^DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ		= "DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ"$/;"	v
+DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_WRITE	AISA_AVMCore.py	/^DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_WRITE		= "DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_WRITE"$/;"	v
+DEVICE_TYPE_VM_VOLUME	AISA_AVMCore.py	/^DEVICE_TYPE_VM_VOLUME				 		= "DEVICE_TYPE_VM_VOLUME"$/;"	v
+DEVICE_TYPE_VM_VOLUME_SNAPSHOT_READ	AISA_AVMCore.py	/^DEVICE_TYPE_VM_VOLUME_SNAPSHOT_READ			= "DEVICE_TYPE_VM_VOLUME_SNAPSHOT_READ"$/;"	v
+DEVICE_TYPE_VM_VOLUME_SNAPSHOT_WRITE	AISA_AVMCore.py	/^DEVICE_TYPE_VM_VOLUME_SNAPSHOT_WRITE		= "DEVICE_TYPE_VM_VOLUME_SNAPSHOT_WRITE"$/;"	v
+DZ_CLI_CONFIG_FILE_PATH	AISA_AVMCore.py	/^DZ_CLI_CONFIG_FILE_PATH 					= "\/etc\/datumsoft\/avm.conf"	$/;"	v
+DZ_CLI_CONFIG_FILE_PATH	AISA_AVMGlobals.py	/^DZ_CLI_CONFIG_FILE_PATH 					= "\/etc\/datumsoft\/avm.conf"	$/;"	v
+DZ_CLI_PRODUCT	AISA_AVMCore.py	/^DZ_CLI_PRODUCT								= "AISA Volume Manager (AVM)"$/;"	v
+DZ_CLI_PRODUCT	AISA_AVMGlobals.py	/^DZ_CLI_PRODUCT								= "ZAIDSTOR AISA Volume Manager (AVM)"$/;"	v
+DZ_CLI_VERSION	AISA_AVMCore.py	/^DZ_CLI_VERSION								= "1.1.a"$/;"	v
+DZ_CLI_VERSION	AISA_AVMGlobals.py	/^DZ_CLI_VERSION								= "1.1.a"$/;"	v
+DZ_DRIVER_VERSION	AISA_AVMCore.py	/^DZ_DRIVER_VERSION							= "3.10.101"$/;"	v
+DZ_DRIVER_VERSION	AISA_AVMGlobals.py	/^DZ_DRIVER_VERSION							= "3.10.101"$/;"	v
+ERROR	AISA_Error.py	/^ERROR	= 0$/;"	v
+FAILURE	AISA_Error.py	/^FAILURE	= 1$/;"	v
+FileUtils	AISA_Utils.py	/^class FileUtils():$/;"	c
+INFO	AISA_Error.py	/^INFO	= 2$/;"	v
+KERNEL_MODULE_LIST	AISA_AVMCore.py	/^KERNEL_MODULE_LIST				= [$/;"	v
+KERNEL_MODULE_LIST	AISA_AVMGlobals.py	/^KERNEL_MODULE_LIST				= [$/;"	v
+LOG	AISA_Utils.py	/^	def LOG(self):$/;"	m	class:ReturnInfo
+LOG	AISA_Utils.py	/^def LOG(lvl, strarg):$/;"	f
+LOGR	AISA_Utils.py	/^def LOGR(strarg):$/;"	f
+LOGRAW	AISA_Utils.py	/^	def LOGRAW(self):$/;"	m	class:ReturnInfo
+LOGRAW	AISA_Utils.py	/^def LOGRAW(strarg):$/;"	f
+LOG_DICT	AISA_Error.py	/^LOG_DICT = { ERROR : "ERROR", INFO : "INFO ", WARN : "WARN ", DEBUG : "DEBUG"};$/;"	v
+LOG_LEVEL	AISA_Error.py	/^LOG_LEVEL	= DEBUG$/;"	v
+Log	AISA_Utils.py	/^	def Log(self):$/;"	m	class:ReturnInfo
+Log	AISA_Utils.py	/^def Log(lvl, str):$/;"	f
+RTSRoot	AISA_Lio.py	/^from rtslib		import RTSRoot$/;"	i
+ReturnInfo	AISA_Utils.py	/^class ReturnInfo():$/;"	c
+SUCCESS	AISA_Error.py	/^SUCCESS	= 0$/;"	v
+ShellCmd	AISA_Utils.py	/^class ShellCmd():$/;"	c
+Syslog	AISA_Utils.py	/^def Syslog(str):$/;"	f
+TABLE_NAME_AISA	AISA_AVMCore.py	/^TABLE_NAME_AISA					 			= "AVM_TARGET"$/;"	v
+TABLE_NAME_AISA_DATA_VOLUME	AISA_AVMCore.py	/^TABLE_NAME_AISA_DATA_VOLUME			 		= "AVM_VOLUME"$/;"	v
+TABLE_NAME_AISA_DATA_VOLUME_SNAPSHOT_READ	AISA_AVMCore.py	/^TABLE_NAME_AISA_DATA_VOLUME_SNAPSHOT_READ	= "AVM_VOLUME_SR"$/;"	v
+TABLE_NAME_AISA_DATA_VOLUME_SNAPSHOT_WRITE	AISA_AVMCore.py	/^TABLE_NAME_AISA_DATA_VOLUME_SNAPSHOT_WRITE	= "AVM_VOLUME_SW"$/;"	v
+TABLE_NAME_AISA_VM_VOLUME	AISA_AVMCore.py	/^TABLE_NAME_AISA_VM_VOLUME			 		= "AVM_VOLUME_VM"$/;"	v
+TABLE_NAME_AISA_VM_VOLUME_SNAPSHOT_READ	AISA_AVMCore.py	/^TABLE_NAME_AISA_VM_VOLUME_SNAPSHOT_READ		= "AVM_VOLUME_VMSR"$/;"	v
+TABLE_NAME_AISA_VM_VOLUME_SNAPSHOT_WRITE	AISA_AVMCore.py	/^TABLE_NAME_AISA_VM_VOLUME_SNAPSHOT_WRITE	= "AVM_VOLUME_VMSW"$/;"	v
+Trim	AISA_Utils.py	/^def Trim(arg_str):$/;"	f
+Utils	AISA_Utils.py	/^class Utils():$/;"	c
+WARN	AISA_Error.py	/^WARN	= 1$/;"	v
+__init__	AISA_AVMCore.py	/^	def     __init__(self, arg_data_device_name, arg_metadata_device_name):$/;"	m	class:AVM_CORE
+__init__	AISA_Lio.py	/^	def     __init__(self):$/;"	m	class:AISA_LIO
+__init__	AISA_Utils.py	/^	def __init__(self, ret, retstr):$/;"	m	class:ReturnInfo
+addPath	AISA_Utils.py	/^def addPath(arg_path):$/;"	f
+argv	AISA_AVMCore.py	/^from sys import argv$/;"	i
+argv	AISA_MDRaid.py	/^from sys import argv$/;"	i
+assemble	AISA_MDRaid.py	/^	def assemble(self):$/;"	m	class:AVM_MDRAID
+basename	AISA_Utils.py	/^	def basename(path):$/;"	m	class:ShellCmd
+basename	AISA_Utils.py	/^from os.path import basename$/;"	i
+checkStorageObjectExists	AISA_Lio.py	/^	def checkStorageObjectExists(self, soname, devname):$/;"	m	class:AISA_LIO
+checkTargetExists	AISA_Lio.py	/^	def checkTargetExists(self, wwn):$/;"	m	class:AISA_LIO
+cmd	AISA_AVMCore.py	/^import cmd$/;"	i
+cmd	AISA_MDRaid.py	/^import cmd$/;"	i
+cmds	AISA_AVMCore.py	/^from lsm.lsmcli.cmdline import cmds$/;"	i
+cmds	AISA_MDRaid.py	/^from lsm.lsmcli.cmdline import cmds$/;"	i
+convert_bytes_to_blocks	AISA_Utils.py	/^def convert_bytes_to_blocks(arg_size_in_bytes):$/;"	f
+convert_bytes_to_gb	AISA_Utils.py	/^def convert_bytes_to_gb(arg_size_in_bytes):$/;"	f
+convert_bytes_to_kb	AISA_Utils.py	/^def convert_bytes_to_kb(arg_size_in_bytes):$/;"	f
+convert_bytes_to_mb	AISA_Utils.py	/^def convert_bytes_to_mb(arg_size_in_bytes):$/;"	f
+convert_gb_to_blocks	AISA_Utils.py	/^def convert_gb_to_blocks(arg_size_in_gb):$/;"	f
+convert_mb_to_blocks	AISA_Utils.py	/^def convert_mb_to_blocks(arg_size_in_mb):$/;"	f
+createLun	AISA_Lio.py	/^	def createLun(self, arg_tpg, arg_bo, arg_lunNo, arg_lunName):$/;"	m	class:AISA_LIO
+createNodeACLObject	AISA_Lio.py	/^	def createNodeACLObject(self, arg_tpg, initiator):$/;"	m	class:AISA_LIO
+createStorageObjectOnBlockDevice	AISA_Lio.py	/^	def createStorageObjectOnBlockDevice(self, soname, devname):$/;"	m	class:AISA_LIO
+createTarget	AISA_Lio.py	/^	def createTarget(self, ttype, addr, portno):$/;"	m	class:AISA_LIO
+create_aisa	AISA_AVMCore.py	/^	def create_aisa(self, arg_type, arg_name, arg_size):$/;"	m	class:AVM_CORE
+create_aisa_default	AISA_AVMCore.py	/^	def create_aisa_default(self):$/;"	m	class:AVM_CORE
+create_data_array	AISA_MDRaid.py	/^	def create_data_array(self):$/;"	m	class:AVM_MDRAID
+create_linear_metadata_array	AISA_MDRaid.py	/^	def create_linear_metadata_array(self):$/;"	m	class:AVM_MDRAID
+create_metadata_array	AISA_MDRaid.py	/^	def create_metadata_array(self):$/;"	m	class:AVM_MDRAID
+create_volume	AISA_AVMCore.py	/^	def create_volume(self, arg_type, arg_name, arg_size, arg_parent):$/;"	m	class:AVM_CORE
+currentTime	AISA_Utils.py	/^	def currentTime():$/;"	m	class:Utils
+date	AISA_Utils.py	/^	def date():$/;"	m	class:ShellCmd
+deleteAllStorageObjects	AISA_Lio.py	/^	def deleteAllStorageObjects():$/;"	m	class:AISA_LIO
+deleteEntireTargetConfiguration	AISA_Lio.py	/^	def deleteEntireTargetConfiguration(self):$/;"	m	class:AISA_LIO
+deleteStorageObject	AISA_Lio.py	/^	def deleteStorageObject(self, soname, devname):$/;"	m	class:AISA_LIO
+deleteTarget	AISA_Lio.py	/^	def deleteTarget(self, wwn):$/;"	m	class:AISA_LIO
+delete_aisa	AISA_AVMCore.py	/^	def delete_aisa(self):$/;"	m	class:AVM_CORE
+delete_all_volumes	AISA_AVMCore.py	/^	def delete_all_volumes(self):$/;"	m	class:AVM_CORE
+delete_volume	AISA_AVMCore.py	/^	def delete_volume(self, arg_devname):$/;"	m	class:AVM_CORE
+doLunMapping	AISA_Lio.py	/^	def doLunMapping(self, arg_lunNo, arg_nodeACL):$/;"	m	class:AISA_LIO
+dz_cli_avm_restart	AISA_Avm.py	/^def dz_cli_avm_restart(argc, argv):$/;"	f
+dz_cli_avm_restart	avm	/^def dz_cli_avm_restart(argc, argv):$/;"	f
+dz_cli_avm_start	AISA_Avm.py	/^def dz_cli_avm_start(argc, argv):$/;"	f
+dz_cli_avm_start	avm	/^def dz_cli_avm_start(argc, argv):$/;"	f
+dz_cli_avm_stop	AISA_Avm.py	/^def dz_cli_avm_stop(argc, argv):$/;"	f
+dz_cli_avm_stop	avm	/^def dz_cli_avm_stop(argc, argv):$/;"	f
+dz_cli_config	AISA_Avm.py	/^def dz_cli_config(argc, argv):$/;"	f
+dz_cli_config	avm	/^def dz_cli_config(argc, argv):$/;"	f
+dz_cli_create	AISA_Avm.py	/^def dz_cli_create(argc, argv):$/;"	f
+dz_cli_create	avm	/^def dz_cli_create(argc, argv):$/;"	f
+dz_cli_delete	AISA_Avm.py	/^def dz_cli_delete(argc, argv):$/;"	f
+dz_cli_delete	avm	/^def dz_cli_delete(argc, argv):$/;"	f
+dz_cli_destroy	AISA_Avm.py	/^def dz_cli_destroy(argc, argv):$/;"	f
+dz_cli_destroy	avm	/^def dz_cli_destroy(argc, argv):$/;"	f
+dz_cli_disks	AISA_Avm.py	/^def dz_cli_disks(argc, argv):$/;"	f
+dz_cli_disks	avm	/^def dz_cli_disks(argc, argv):$/;"	f
+dz_cli_help	AISA_AVMHelp.py	/^def dz_cli_help(argc, argv):$/;"	f
+dz_cli_help_all	AISA_AVMHelp.py	/^def dz_cli_help_all(argc, argv):$/;"	f
+dz_cli_help_create_aisa	AISA_AVMHelp.py	/^def dz_cli_help_create_aisa(argc, argv):$/;"	f
+dz_cli_help_create_vmvol	AISA_AVMHelp.py	/^def dz_cli_help_create_vmvol(argc, argv):$/;"	f
+dz_cli_help_create_vmvolsnap	AISA_AVMHelp.py	/^def dz_cli_help_create_vmvolsnap(argc, argv):$/;"	f
+dz_cli_help_create_vol	AISA_AVMHelp.py	/^def dz_cli_help_create_vol(argc, argv):$/;"	f
+dz_cli_help_create_volsnap	AISA_AVMHelp.py	/^def dz_cli_help_create_volsnap(argc, argv):$/;"	f
+dz_cli_help_delete	AISA_AVMHelp.py	/^def dz_cli_help_delete(argc, argv):$/;"	f
+dz_cli_help_destroy	AISA_AVMHelp.py	/^def dz_cli_help_destroy(argc, argv):$/;"	f
+dz_cli_help_help	AISA_AVMHelp.py	/^def dz_cli_help_help(argc, argv):$/;"	f
+dz_cli_help_info	AISA_AVMHelp.py	/^def dz_cli_help_info(argc, argv):$/;"	f
+dz_cli_help_io	AISA_AVMHelp.py	/^def dz_cli_help_io(argc, argv):$/;"	f
+dz_cli_help_size	AISA_AVMHelp.py	/^def dz_cli_help_size(argc, argv):$/;"	f
+dz_cli_help_stats	AISA_AVMHelp.py	/^def dz_cli_help_stats(argc, argv):$/;"	f
+dz_cli_info	AISA_Avm.py	/^def dz_cli_info(argc, argv):$/;"	f
+dz_cli_info	avm	/^def dz_cli_info(argc, argv):$/;"	f
+dz_cli_io_read	AISA_Avm.py	/^def dz_cli_io_read(argc, argv):$/;"	f
+dz_cli_io_read	avm	/^def dz_cli_io_read(argc, argv):$/;"	f
+dz_cli_io_read_write	AISA_Avm.py	/^def dz_cli_io_read_write(argc, argv):$/;"	f
+dz_cli_io_read_write	avm	/^def dz_cli_io_read_write(argc, argv):$/;"	f
+dz_cli_io_read_write_read	AISA_Avm.py	/^def dz_cli_io_read_write_read(argc, argv):$/;"	f
+dz_cli_io_read_write_read	avm	/^def dz_cli_io_read_write_read(argc, argv):$/;"	f
+dz_cli_io_read_zero_read	AISA_Avm.py	/^def dz_cli_io_read_zero_read(argc, argv):$/;"	f
+dz_cli_io_read_zero_read	avm	/^def dz_cli_io_read_zero_read(argc, argv):$/;"	f
+dz_cli_io_write	AISA_Avm.py	/^def dz_cli_io_write(argc, argv):$/;"	f
+dz_cli_io_write	avm	/^def dz_cli_io_write(argc, argv):$/;"	f
+dz_cli_io_write_read	AISA_Avm.py	/^def dz_cli_io_write_read(argc, argv):$/;"	f
+dz_cli_io_write_read	avm	/^def dz_cli_io_write_read(argc, argv):$/;"	f
+dz_cli_io_zero	AISA_Avm.py	/^def dz_cli_io_zero(argc, argv):$/;"	f
+dz_cli_io_zero	avm	/^def dz_cli_io_zero(argc, argv):$/;"	f
+dz_cli_lba_pba	AISA_Avm.py	/^def dz_cli_lba_pba(argc, argv):$/;"	f
+dz_cli_lba_pba	avm	/^def dz_cli_lba_pba(argc, argv):$/;"	f
+dz_cli_list_volumes	AISA_Avm.py	/^def dz_cli_list_volumes(argc, argv):$/;"	f
+dz_cli_list_volumes	avm	/^def dz_cli_list_volumes(argc, argv):$/;"	f
+dz_cli_log	AISA_Avm.py	/^def dz_cli_log(argc, argv):$/;"	f
+dz_cli_log	avm	/^def dz_cli_log(argc, argv):$/;"	f
+dz_cli_rmmod	AISA_Avm.py	/^def dz_cli_rmmod(argc, argv):$/;"	f
+dz_cli_rmmod	avm	/^def dz_cli_rmmod(argc, argv):$/;"	f
+dz_cli_size	AISA_Avm.py	/^def dz_cli_size(argc, argv):$/;"	f
+dz_cli_size	avm	/^def dz_cli_size(argc, argv):$/;"	f
+dz_cli_sizeof	AISA_Avm.py	/^def dz_cli_sizeof(argc, argv):$/;"	f
+dz_cli_sizeof	avm	/^def dz_cli_sizeof(argc, argv):$/;"	f
+dz_cli_stats	AISA_Avm.py	/^def dz_cli_stats(argc, argv):$/;"	f
+dz_cli_stats	avm	/^def dz_cli_stats(argc, argv):$/;"	f
+dz_cli_sysfs	AISA_Avm.py	/^def dz_cli_sysfs(argc, argv):$/;"	f
+dz_cli_sysfs	avm	/^def dz_cli_sysfs(argc, argv):$/;"	f
+dz_cli_validate	AISA_Avm.py	/^def dz_cli_validate(argc, argv):$/;"	f
+dz_cli_validate	avm	/^def dz_cli_validate(argc, argv):$/;"	f
+dz_cli_version	AISA_Avm.py	/^def dz_cli_version(argc, argv):$/;"	f
+dz_cli_version	avm	/^def dz_cli_version(argc, argv):$/;"	f
+dz_list_kernel_modules	AISA_Avm.py	/^def dz_list_kernel_modules(argc, argv):$/;"	f
+dz_list_kernel_modules	avm	/^def dz_list_kernel_modules(argc, argv):$/;"	f
+dz_load_config_file	AISA_AVMConfig.py	/^def dz_load_config_file(arg_show_key_val):$/;"	f
+dz_populate_config_file	AISA_Avm.py	/^def dz_populate_config_file(arg_show_key_val):$/;"	f
+dz_populate_config_file	avm	/^def dz_populate_config_file(arg_show_key_val):$/;"	f
+dz_status	AISA_Avm.py	/^def dz_status(argc, argv):$/;"	f
+dz_status	avm	/^def dz_status(argc, argv):$/;"	f
+dz_validate_aisa_target	AISA_Avm.py	/^def dz_validate_aisa_target(arg_show):$/;"	f
+dz_validate_aisa_target	avm	/^def dz_validate_aisa_target(arg_show):$/;"	f
+dz_validate_kernel_modules	AISA_Avm.py	/^def dz_validate_kernel_modules(arg_show):$/;"	f
+dz_validate_kernel_modules	avm	/^def dz_validate_kernel_modules(arg_show):$/;"	f
+fcntl	AISA_Utils.py	/^import fcntl$/;"	i
+findStorageObject	AISA_Lio.py	/^	def findStorageObject(self, soname, devname):$/;"	m	class:AISA_LIO
+findTarget	AISA_Lio.py	/^	def findTarget(self, wwn):$/;"	m	class:AISA_LIO
+getCurrentDate	AISA_Utils.py	/^def getCurrentDate():$/;"	f
+getCurrentDateAndTime	AISA_Utils.py	/^def getCurrentDateAndTime():$/;"	f
+getCurrentDateRaw	AISA_Utils.py	/^def getCurrentDateRaw():$/;"	f
+getCurrentTime	AISA_Utils.py	/^def getCurrentTime():$/;"	f
+getCurrentTimeAndDate	AISA_Utils.py	/^def getCurrentTimeAndDate():$/;"	f
+getCurrentTimeRaw	AISA_Utils.py	/^def getCurrentTimeRaw():$/;"	f
+getHex	AISA_Utils.py	/^def getHex(ch):$/;"	f
+getLunList	AISA_Lio.py	/^	def getLunList(self):$/;"	m	class:AISA_LIO
+getLunNo	AISA_Lio.py	/^	def getLunNo(self, lun=None):$/;"	m	class:AISA_LIO
+getLunWWULN	AISA_Lio.py	/^	def getLunWWULN(self):$/;"	m	class:AISA_LIO
+getPackagePath	AISA_Utils.py	/^def getPackagePath():$/;"	f
+getSize	AISA_MDRaid.py	/^	def getSize(self):$/;"	m	class:AVM_MDRAID
+getSizeBlocks	AISA_MDRaid.py	/^	def getSizeBlocks(self):$/;"	m	class:AVM_MDRAID
+getSizeBlocks	AISA_Utils.py	/^def getSizeBlocks(device): $/;"	f
+getSizeBytes	AISA_Utils.py	/^def getSizeBytes(device):$/;"	f
+getStorageObjectBlockDevice	AISA_Lio.py	/^	def getStorageObjectBlockDevice(self):$/;"	m	class:AISA_LIO
+getStorageObjectList	AISA_Lio.py	/^	def getStorageObjectList(self):$/;"	m	class:AISA_LIO
+getStorageObjectName	AISA_Lio.py	/^	def getStorageObjectName(self, so=None):$/;"	m	class:AISA_LIO
+getStorageObjectWWN	AISA_Lio.py	/^	def getStorageObjectWWN(self):$/;"	m	class:AISA_LIO
+getTargetList	AISA_Lio.py	/^	def getTargetList(self, ttype):$/;"	m	class:AISA_LIO
+getTargetWWN	AISA_Lio.py	/^	def getTargetWWN(self, target=None):$/;"	m	class:AISA_LIO
+getUUID	AISA_Utils.py	/^def getUUID():$/;"	f
+get_aisa_default_size_blocks	AISA_AVMCore.py	/^	def get_aisa_default_size_blocks(self):$/;"	m	class:AVM_CORE
+get_aisa_default_size_bytes	AISA_AVMCore.py	/^	def get_aisa_default_size_bytes(self):$/;"	m	class:AVM_CORE
+get_aisa_size_blocks	AISA_AVMCore.py	/^	def get_aisa_size_blocks(self):$/;"	m	class:AVM_CORE
+get_aisa_size_bytes	AISA_AVMCore.py	/^	def get_aisa_size_bytes(self):$/;"	m	class:AVM_CORE
+get_block_device_size	AISA_Utils.py	/^def get_block_device_size(device_name):$/;"	f
+get_device_size_blocks	AISA_AVMCore.py	/^	def get_device_size_blocks(self, arg_volname):$/;"	m	class:AVM_CORE
+get_device_size_bytes	AISA_AVMCore.py	/^	def get_device_size_bytes(self, arg_volname):$/;"	m	class:AVM_CORE
+get_kernel_counters_align	AISA_AVMCore.py	/^	def get_kernel_counters_align(self):$/;"	m	class:AVM_CORE
+get_kernel_counters_bec	AISA_AVMCore.py	/^	def get_kernel_counters_bec(self):$/;"	m	class:AVM_CORE
+get_kernel_counters_dedupe	AISA_AVMCore.py	/^	def get_kernel_counters_dedupe(self):$/;"	m	class:AVM_CORE
+get_kernel_counters_fec	AISA_AVMCore.py	/^	def get_kernel_counters_fec(self):$/;"	m	class:AVM_CORE
+get_kernel_counters_metadata	AISA_AVMCore.py	/^	def get_kernel_counters_metadata(self):$/;"	m	class:AVM_CORE
+get_kernel_lba_entry	AISA_AVMCore.py	/^	def get_kernel_lba_entry(self, arg_lba_index):$/;"	m	class:AVM_CORE
+get_kernel_memory	AISA_AVMCore.py	/^	def get_kernel_memory(self):$/;"	m	class:AVM_CORE
+get_kernel_pba_entry	AISA_AVMCore.py	/^	def get_kernel_pba_entry(self, arg_pba_index):$/;"	m	class:AVM_CORE
+get_kernel_superblock	AISA_AVMCore.py	/^	def get_kernel_superblock(self):$/;"	m	class:AVM_CORE
+get_kernel_table_size	AISA_AVMCore.py	/^	def get_kernel_table_size(self):$/;"	m	class:AVM_CORE
+get_kernel_version	AISA_AVMCore.py	/^	def get_kernel_version(self):$/;"	m	class:AVM_CORE
+get_magic_no	AISA_AVMCore.py	/^	def get_magic_no(self, argstr):$/;"	m	class:AVM_CORE
+get_sysfs_entries	AISA_AVMCore.py	/^	def get_sysfs_entries(self):$/;"	m	class:AVM_CORE
+getopt	AISA_AVMCore.py	/^import getopt$/;"	i
+getopt	AISA_MDRaid.py	/^import getopt$/;"	i
+handlers	AISA_Utils.py	/^import logging.handlers$/;"	i
+info_aisa	AISA_AVMCore.py	/^	def info_aisa(self):$/;"	m	class:AVM_CORE
+info_volume	AISA_AVMCore.py	/^	def info_volume(self, arg_name):$/;"	m	class:AVM_CORE
+insmod	AISA_Utils.py	/^	def insmod(module):$/;"	m	class:ShellCmd
+isDir	AISA_Utils.py	/^	def isDir(fname):$/;"	m	class:FileUtils
+isFile	AISA_Utils.py	/^	def isFile(fname):$/;"	m	class:FileUtils
+kernel_io_read	AISA_AVMCore.py	/^	def kernel_io_read(self, argc, argv):$/;"	m	class:AVM_CORE
+kernel_io_write	AISA_AVMCore.py	/^	def kernel_io_write(self, argc, argv):$/;"	m	class:AVM_CORE
+kernel_io_zero	AISA_AVMCore.py	/^	def kernel_io_zero(self, argc, argv):$/;"	m	class:AVM_CORE
+kernel_sizeof_datastructures	AISA_AVMCore.py	/^	def kernel_sizeof_datastructures(self, argc, argv):$/;"	m	class:AVM_CORE
+list_volume	AISA_AVMCore.py	/^	def list_volume(self, argc, argv):$/;"	m	class:AVM_CORE
+list_volume_short	AISA_AVMCore.py	/^	def list_volume_short(self):$/;"	m	class:AVM_CORE
+load_module	AISA_Utils.py	/^	def load_module(module):$/;"	m	class:ShellCmd
+log	AISA_Utils.py	/^	def log(self):$/;"	m	class:ReturnInfo
+log	AISA_Utils.py	/^def log(lvl, str):$/;"	f
+logging	AISA_Utils.py	/^import logging$/;"	i
+logging	AISA_Utils.py	/^import logging.handlers$/;"	i
+main	AISA_AVMConfig.py	/^def main(argv):$/;"	f
+main	AISA_Avm.py	/^def main(argv):$/;"	f
+main	AISA_Lio.py	/^def main():$/;"	f
+main	avm	/^def main(argv):$/;"	f
+monitor	AISA_MDRaid.py	/^	def monitor(self):$/;"	m	class:AVM_MDRAID
+os	AISA_AVMCore.py	/^import os$/;"	i
+os	AISA_Defaults.py	/^import os$/;"	i
+os	AISA_Error.py	/^import os$/;"	i
+os	AISA_Lio.py	/^import os$/;"	i
+os	AISA_MDRaid.py	/^import os$/;"	i
+os	AISA_Utils.py	/^import os$/;"	i
+print	AISA_Lio.py	/^	def print(self):$/;"	m	class:AISA_LIO
+print_aisa_size	AISA_AVMCore.py	/^	def print_aisa_size(self):$/;"	m	class:AVM_CORE
+print_function	AISA_AVMCore.py	/^from __future__ import print_function$/;"	i
+print_function	AISA_Defaults.py	/^from __future__ import print_function$/;"	i
+print_function	AISA_Error.py	/^from __future__ import print_function$/;"	i
+print_function	AISA_Lio.py	/^from __future__ import print_function$/;"	i
+print_function	AISA_MDRaid.py	/^from __future__ import print_function$/;"	i
+print_function	AISA_Utils.py	/^from __future__ import print_function$/;"	i
+print_volume_size_all	AISA_AVMCore.py	/^	def print_volume_size_all(self):$/;"	m	class:AVM_CORE
+remove_module	AISA_Utils.py	/^	def remove_module(module):$/;"	m	class:ShellCmd
+run	AISA_Utils.py	/^	def run(cmdstr):$/;"	m	class:ShellCmd
+runo	AISA_Utils.py	/^	def runo(cmdstr):$/;"	m	class:ShellCmd
+runr	AISA_Utils.py	/^	def runr(cmdstr): #Raw run i.e. without any debug messages$/;"	m	class:ShellCmd
+runr	AISA_Utils.py	/^	def runr(cmdstr):$/;"	m	class:ShellCmd
+save	AISA_MDRaid.py	/^	def save(self):$/;"	m	class:AVM_MDRAID
+save_config	AISA_MDRaid.py	/^	def save_config(self):$/;"	m	class:AVM_MDRAID
+start	AISA_Lio.py	/^	def start(self, soname, devname, lunNo, lunName, ttype, initiator, ipaddr, portno):$/;"	m	class:AISA_LIO
+start	AISA_MDRaid.py	/^	def start(self):$/;"	m	class:AVM_MDRAID
+start_V2	AISA_MDRaid.py	/^	def start_V2(self):$/;"	m	class:AVM_MDRAID
+start_data_disks	AISA_MDRaid.py	/^	def start_data_disks(self):$/;"	m	class:AVM_MDRAID
+start_metadata_disks	AISA_MDRaid.py	/^	def start_metadata_disks(self):$/;"	m	class:AVM_MDRAID
+stat	AISA_MDRaid.py	/^	def stat(self):$/;"	m	class:AVM_MDRAID
+stop	AISA_MDRaid.py	/^	def stop(self):$/;"	m	class:AVM_MDRAID
+stop2	AISA_MDRaid.py	/^	def stop2(self):$/;"	m	class:AVM_MDRAID
+stop_metadata_disks	AISA_MDRaid.py	/^	def stop_metadata_disks(self):$/;"	m	class:AVM_MDRAID
+str	AISA_MDRaid.py	/^		str = 'Class ' + __name__ + ' defined'$/;"	v	class:AVM_MDRAID
+struct	AISA_Utils.py	/^import struct$/;"	i
+subprocess	AISA_Utils.py	/^import subprocess$/;"	i
+sys	AISA_AVMCore.py	/^import sys$/;"	i
+sys	AISA_Defaults.py	/^import sys$/;"	i
+sys	AISA_Error.py	/^import sys$/;"	i
+sys	AISA_Lio.py	/^import sys$/;"	i
+sys	AISA_MDRaid.py	/^import sys$/;"	i
+sys	AISA_Utils.py	/^import sys$/;"	i
+time	AISA_Utils.py	/^		import time$/;"	i
+time	AISA_Utils.py	/^import time$/;"	i
+trace	AISA_Error.py	/^import trace$/;"	i
+trim	AISA_Utils.py	/^def trim(arg_str):$/;"	f
+validate_aisa_target	AISA_AVMCore.py	/^	def validate_aisa_target(self, arg_show):$/;"	m	class:AVM_CORE

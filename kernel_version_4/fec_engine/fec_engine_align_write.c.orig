@@ -1,0 +1,1770 @@
+#include "fec_engine.h"
+extern U64 				fec_table_size;
+extern U64				fec_active_count;
+
+extern PDZ_THREAD_POOL 	dedupe_thread_pool;
+
+extern SPINLOCK			fec_active_lock;
+extern SPINLOCK			fec_flush_lock;
+
+//For operational purpose
+extern PFEC_TABLE 		fec_tables_active;
+extern PFEC_TABLE 		fec_tables_flush;
+extern FEC_WRITE		fec_table_active;
+extern PIOREQUEST		fec_flush_iorequest;
+
+extern PDZ_THREAD_POOL read_thread_pool;
+extern PLBA_BLOCK		lba_table;
+extern ATOMIC64 fec_iocount_writes_partial_page;
+extern ATOMIC64 fec_iocount_writes_single_page;
+extern ATOMIC64 fec_iocount_writes_single_aligned_page;
+extern ATOMIC64 fec_iocount_writes_single_unaligned_page;
+extern ATOMIC64 fec_iocount_writes_multi_page;
+
+RVOID dz_faw_parent_biodone(PBIO bio, INT error)
+{
+	PIOREQUEST ciorequest = (PIOREQUEST) bio->bi_private;
+	PIOREQUEST piorequest = ciorequest->parent;
+	PBIOVEC		pbvec		= NULL;	
+	piorequest = ciorequest->parent;
+	PRINT_ATOMIC(piorequest->child_cnt);
+	if (atomic_dec_and_test(&piorequest->child_cnt)) {
+		// Now complete the Parent / Original bio
+		//print_biom(piorequest->ior_bio, "Parent bio when all childs are done");
+		LOG("Parent IO Done\n");
+		IO_DONE_STATUS(piorequest, error);
+		pbvec = bio_iovec(bio);
+		dz_read_page_free(pbvec->bv_page);
+		bio_put(bio);
+		iorequest_put(ciorequest);
+
+		bio_data_dir(piorequest->ior_bio) == WRITE ? 
+		iorequest_put(piorequest) : 
+		iorequest_put(piorequest);
+		return;
+	}
+	pbvec = bio_iovec(bio);
+	dz_read_page_free(pbvec->bv_page);
+	bio_put(bio);
+	iorequest_put(ciorequest);
+	
+	return;
+}
+
+RVOID dz_fec_align_read_page_sync_biodone(PBIO bio, INT error)
+{
+	PDZ_COMPLETION		ior = (PDZ_COMPLETION)bio->bi_private;
+	INT ret = 0;
+	if (unlikely(!bio_flagged(bio, BIO_UPTODATE) && !error)) {
+		error = -EIO;
+	}
+
+	ior->error = error;
+	ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
+
+	complete(&ior->io_completion);
+}
+
+RVOID dz_fec_align_read_page_async_parent_biodone(PBIO bio, INT error)
+{
+	PIOREQUEST ciorequest = (PIOREQUEST) bio->bi_private;
+	PIOREQUEST piorequest = NULL;
+	if (ciorequest->parent) {
+		piorequest = ciorequest->parent;
+		PRINT_ATOMIC(piorequest->child_cnt);
+		if (atomic_dec_and_test(&piorequest->child_cnt)) {
+			// Now complete the Parent / Original bio
+			//print_biom(piorequest->ior_bio, "Parent bio when all childs are done");
+			LOG("Parent IO Done\n");
+			IO_DONE_STATUS(piorequest, error);
+			bio_put(bio);
+			iorequest_put(ciorequest);
+
+			bio_data_dir(piorequest->ior_bio) == WRITE ? 
+			iorequest_put(piorequest) : 
+			iorequest_put(piorequest);
+			return;
+		}
+	}
+	bio_put(bio);
+	iorequest_put(ciorequest);
+	
+	return;
+}
+
+RVOID dz_fec_align_write_double_page_async_biodone_head(PBIO bio, INT error)
+{
+	PIOREQUEST	ciorequest 	= (PIOREQUEST)(bio->bi_private);
+	PIOREQUEST	piorequest 	= ciorequest->parent;
+	PBIO		parent_bio	= piorequest->ior_bio;
+	PFEC_WRITE	fecw 		= (PFEC_WRITE)(ciorequest->private);
+	PVOID   	pagebuf		= NULL;
+	PBIOVEC		pbvec		= NULL;	
+	INT 		ret 		= SUCCESS;
+	INT			bv_offset	= ciorequest->bv_offset;
+	if (unlikely(!bio_flagged(bio, BIO_UPTODATE) && !error)) {
+		error = -EIO;
+	}
+
+	
+	LOG("Inside biodone Head\n");
+	PRINT_POINTER(fecw);
+	ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
+	//print_fecws(fecw, "Head First");
+
+	//Now copy the original head part from child bio
+	pbvec = bio_iovec(bio);
+	pagebuf = kmap(pbvec->bv_page);
+	pagebuf += pbvec->bv_offset;
+	PMEMCPY(fecw->bv_page, pagebuf, bv_offset);
+	kunmap(pbvec->bv_page);
+
+	//Now merge the application data from parent bio
+	pbvec = bio_iovec(parent_bio);
+	pagebuf = kmap(pbvec->bv_page);
+	pagebuf += bv_offset;
+	PMEMCPY(fecw->bv_page + bv_offset, pagebuf, PAGE_SIZE - bv_offset );
+	kunmap(pbvec->bv_page);
+
+	SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+
+	dz_faw_parent_biodone(bio, error);
+
+	FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, ciorequest->lba);
+
+	//print_fecws(fecw, "Head Last");
+}
+
+RVOID dz_fec_align_write_double_page_async_biodone_tail(PBIO bio, INT error)
+{
+	PIOREQUEST	ciorequest 	= (PIOREQUEST)(bio->bi_private);
+	PIOREQUEST	piorequest 	= ciorequest->parent;
+	PBIO		parent_bio	= piorequest->ior_bio;
+	PFEC_WRITE	fecw 	= (PFEC_WRITE)(ciorequest->private);
+	PVOID   	pagebuf	= NULL;
+	PBIOVEC		pbvec	= NULL;	
+	INT 		ret 	= SUCCESS;
+	INT			bv_len	= ciorequest->bv_len;
+	if (unlikely(!bio_flagged(bio, BIO_UPTODATE) && !error)) {
+		error = -EIO;
+	}
+
+	LOG("Inside biodone Tail\n");
+	PRINT_POINTER(fecw);
+	ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
+	//print_fecws(fecw, "Tail First");
+
+	pbvec = bio_iovec(parent_bio);
+	//Copy unique data from parent bio
+	//Note: We are assuming that the tail data
+	//and the complete bio data 
+	//will always be in one page only
+	pagebuf = kmap(pbvec->bv_page);
+	pagebuf += pbvec->bv_offset;
+	pagebuf += pbvec->bv_len - bv_len;
+	PMEMCPY(fecw->bv_page, pagebuf, bv_len);
+	kunmap(pbvec->bv_page);
+	
+	
+	//Now copy the remaining part from child bio tail
+	pbvec = bio_iovec(bio);
+	pagebuf = kmap(pbvec->bv_page);
+	pagebuf += bv_len;
+	PMEMCPY((fecw->bv_page  + bv_len), pagebuf, PAGE_SIZE - bv_len);
+	kunmap(pbvec->bv_page);
+
+	SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+
+	dz_faw_parent_biodone(bio, error);
+
+	FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, ciorequest->lba);
+
+	print_fecws(fecw, "Tail Last");
+}
+
+RVOID dz_fec_align_read_page_async_biodone_head(PBIO bio, INT error)
+{
+	PIOREQUEST	ciorequest 	= (PIOREQUEST)(bio->bi_private);
+	PFEC_WRITE	fecw 		= (PFEC_WRITE)(ciorequest->private);
+	PVOID   	pagebuf		= NULL;
+	PBIOVEC		pbvec		= NULL;	
+	INT 		ret 		= SUCCESS;
+	INT			bv_offset	= ciorequest->bv_offset;
+	INT i;
+	if (unlikely(!bio_flagged(bio, BIO_UPTODATE) && !error)) {
+		error = -EIO;
+	}
+
+	
+	LOG("Inside biodone Head\n");
+	PRINT_POINTER(fecw);
+	ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
+	//print_fecws(fecw, "Head First");
+
+	bio_for_each_segment(pbvec, bio, i) {
+
+		pagebuf = kmap(pbvec->bv_page);
+		//Here bv_offset is already set.
+		//So it will act as a length i.e
+		//from 0 to bv_offset will be the length of the 
+		//old data present in the bio
+		//Also fecw is already filled with application
+		//IO data which is partial in nature
+		PMEMCPY(fecw->bv_page, pagebuf, bv_offset );
+		kunmap(pbvec->bv_page);
+	}
+
+	SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+
+	dz_fec_align_read_page_async_parent_biodone(bio, error);
+
+	FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, ciorequest->lba);
+
+	print_fecws(fecw, "Head Last");
+}
+
+RVOID dz_fec_align_read_page_async_biodone_tail(PBIO bio, int error)
+{
+	PIOREQUEST	ciorequest 	= (PIOREQUEST)(bio->bi_private);
+	PFEC_WRITE	fecw 	= (PFEC_WRITE)(ciorequest->private);
+	PVOID   	pagebuf	= NULL;
+	PBIOVEC		pbvec	= NULL;	
+	INT 		ret 	= SUCCESS;
+	INT			bv_len	= ciorequest->bv_len;
+	INT i;
+	if (unlikely(!bio_flagged(bio, BIO_UPTODATE) && !error)) {
+		error = -EIO;
+	}
+
+	LOG("Inside biodone Tail\n");
+	PRINT_POINTER(fecw);
+	ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
+	//print_fecws(fecw, "Tail First");
+
+	bio_for_each_segment(pbvec, bio, i) {
+		pagebuf = kmap(pbvec->bv_page);
+		pagebuf += bv_len;
+		PMEMCPY((fecw->bv_page  + bv_len), pagebuf, PAGE_SIZE - bv_len);
+
+		kunmap(pbvec->bv_page);
+	}
+
+	SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+
+	dz_fec_align_read_page_async_parent_biodone(bio, error);
+
+	FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, ciorequest->lba);
+	//iorequest_put(iorequest);
+
+	print_fecws(fecw, "Tail Last");
+}
+
+PPAGE dz_fec_align_read_page_sync(PIOREQUEST iorequest, PBIO parent_bio, SECTOR sector)
+{
+	PPAGE      page	= NULL;
+	PBIO 		bio = NULL;
+	INT error		= 0;
+	PVOID  	pagebuf	= NULL;
+	DZ_COMPLETION   io_completion;
+
+	page =  dz_read_page_alloc();
+	if (!page)  {
+		LOGE("Unable to get free read page\n");
+		RETURNN;
+	}
+
+	bio = dz_bio_alloc(1);
+	if (!bio) {
+		LOGE("Unable to get free bio\n");
+		dz_read_page_free(page);
+		RETURNN;
+	}
+
+	pagebuf = kmap(page);
+	memset(pagebuf, 0, PAGE_SIZE);
+	kunmap(page);
+
+	io_completion.error = 0;
+	bio->bi_bdev 	= parent_bio->bi_bdev;
+	bio->bi_sector 	= sector;
+	bio->bi_end_io 	= dz_fec_align_read_page_sync_biodone;
+	bio->bi_idx		= 0;
+	bio->bi_rw 		= READ;
+	bio->bi_next 	= NULL;
+	bio->bi_private = (VOID *)&io_completion;
+	bio->bi_flags   = 1 << BIO_UPTODATE;
+	//bio->bi_size	= bio_size;
+
+	if (!bio_add_page(bio, page, PAGE_SIZE, 0)) {
+			LOGE("Unable to add page to bio\n");
+			dz_read_page_free(page);
+			bio_put(bio); // It will free the bio as well
+			RETURNN;
+		}
+	init_completion(&io_completion.completion);
+	iorequest->ior_bio = bio;
+	//print_biom(bio, "Reading BIO Page");
+	dz_fec_read_io(iorequest);
+	wait_for_completion(&io_completion.completion);
+
+	//Get the Error returned (if any)
+	//io_completion = bio->bi_private;
+	error = io_completion.error;
+	if (unlikely(error)){
+		LOGE("Error in reading raw data. Error Code : %d", error);
+		print_biom(bio, "bio with error");
+		bio_put(bio); // It will free the bio as well
+		RETURNN;
+	}
+	bio_put(bio); // It will free the bio as well
+	return page;
+
+}
+
+PIOREQUEST dz_fec_align_read_page_async(PIOREQUEST piorequest, PBIO parent_bio,
+		SECTOR sector, PBIOVEC biovec, BIODONE biodone)
+{
+	PPAGE      	page		= NULL;
+	PBIO 		bio 		= NULL;
+	PVOID  		pagebuf		= NULL;
+	PIOREQUEST	iorequest 	= NULL;
+
+	iorequest = dz_io_alloc();
+	if (!iorequest) {
+		LOGE("Unable to allocate memory for iorequest\n");
+		RETURNN;
+	}
+	memset(iorequest, 0, sizeof(IOREQUEST));
+
+	page =  dz_read_page_alloc();
+	if (!page)  {
+		LOGE("Unable to get free read page\n");
+		dz_io_free(iorequest);
+		RETURNN;
+	}
+
+	bio = dz_bio_alloc(1);
+	if (!bio) {
+		LOGE("Unable to get free bio\n");
+		dz_io_free(iorequest);
+		dz_read_page_free(page);
+		RETURNN;
+	}
+
+	pagebuf = kmap(page);
+	memset(pagebuf, 0, PAGE_SIZE);
+	kunmap(page);
+
+	biovec->bv_page = page;
+	biovec->bv_offset = 0;
+	biovec->bv_len = PAGE_SIZE;
+
+	bio->bi_bdev 	= parent_bio->bi_bdev;
+	bio->bi_sector 	= sector;
+	bio->bi_end_io 	= biodone;
+	bio->bi_idx		= 0;
+	bio->bi_rw 		= READ;
+	bio->bi_next 	= NULL;
+	bio->bi_private = iorequest;
+	bio->bi_flags   = 1 << BIO_UPTODATE;
+	//bio->bi_size	= bio_size;
+
+	if (!bio_add_page(bio, page, biovec->bv_len, biovec->bv_offset)) {
+			LOGE("Unable to add page to bio\n");
+			dz_io_free(iorequest);
+			dz_read_page_free(page);
+			bio_put(bio); // It will free the bio as well
+			RETURNN;
+	}
+	iorequest->ior_bio 			= bio;
+	iorequest->thread_pool 	= read_thread_pool;
+	iorequest->parent 		= piorequest;
+	atomic_inc(&piorequest->child_cnt);
+
+	return iorequest;
+}
+
+// We could have used loop to run twice, but that will have additional overhead
+// for failure scenarios
+RVOID dz_fec_align_write_double_page_async(PIOREQUEST parent_iorequest,
+		SECTOR sector_pos_in_lba,
+		BIODONE done_head,
+		BIODONE done_tail)
+{
+	INT			ret 					= SUCCESS;
+	PFEC_WRITE	fecw_head				= NULL;
+	PFEC_WRITE	fecw_tail				= NULL;
+	PIOREQUEST	child_iorequest_head	= NULL;
+	PIOREQUEST	child_iorequest_tail 	= NULL;
+	PBIO		child_bio_head 			= NULL;
+	PBIO		child_bio_tail 			= NULL;
+	PPAGE		page_head				= NULL;
+	PPAGE		page_tail				= NULL;
+	PBIO		bio 					= parent_iorequest->ior_bio; // Parent or Original bio
+	LBA			lba						= parent_iorequest->lba;
+	SECTOR		sector					= dz_convert_lba_to_sector(lba);
+	INT			partial_bytes_head		= 0;
+	INT			partial_bytes_tail		= 0;
+
+	//Allocate fecw for head and tail in advance
+	if (!(fecw_head = GET_FEC_SINGLE_FREE_BUFFER())) {
+		DELAY_MICRO_SECONDS(1);
+		IO_DONE_BUSY(parent_iorequest);
+		return;
+	}
+
+	if (!(fecw_tail = GET_FEC_SINGLE_FREE_BUFFER())) {
+		DELAY_MICRO_SECONDS(1);
+		IO_DONE_BUSY(parent_iorequest);
+		return;
+	}
+	//Do the resource allocation for head part
+	child_iorequest_head = dz_io_alloc(); 
+	if (!child_iorequest_head) {
+		LOGE("Unable to get free iorequest\n");
+		goto exit_failure;
+	}
+	child_bio_head = dz_bio_alloc(1);
+	if (!child_bio_head) {
+		LOGE("Unable to get free child bio\n");
+		goto exit_failure;
+	}
+	page_head =  dz_read_page_alloc();
+	if (!page_head)  {
+		LOGE("Unable to get free read page\n");
+		goto exit_failure;
+	}
+	dz_init_child_bio(bio, child_bio_head, sector, done_head, child_iorequest_head);
+	child_bio_head->bi_rw 		= READ;
+
+	ret = bio_add_page(child_bio_head, page_head, PAGE_SIZE, 0);
+	if (!ret) {
+			IO_DONE_ERROR(parent_iorequest, ret);
+			LOGE("Unable to add Page to child bio head\n");
+			goto exit_alloc;
+			return;
+	}
+	atomic_set(&child_iorequest_head->child_cnt, 0);
+	child_iorequest_head->thread_pool	= read_thread_pool;
+	child_iorequest_head->ior_bio 			= child_bio_head;
+//	child_iorequest_head->target 		= parent_iorequest->target;
+	child_iorequest_head->lba 			= lba;
+	child_iorequest_head->sector 		= sector;
+	child_iorequest_head->parent 		= parent_iorequest;
+	child_iorequest_head->private 		= fecw_head;
+	atomic_inc(&parent_iorequest->child_cnt);
+	
+	//Now do the resource allocation for tail part
+	lba++;
+	sector								= dz_convert_lba_to_sector(lba);
+	child_iorequest_tail = dz_io_alloc(); 
+	if (!child_iorequest_tail) {
+		LOGE("Unable to get free iorequest tail\n");
+		goto exit_failure;
+	}
+	child_bio_tail = dz_bio_alloc(1);
+	if (!child_bio_tail) {
+		LOGE("Unable to get free child bio tail\n");
+		goto exit_failure;
+	}
+	page_tail =  dz_read_page_alloc();
+	if (!page_tail)  {
+		LOGE("Unable to get free read page tail\n");
+		goto exit_failure;
+	}
+	dz_init_child_bio(bio, child_bio_tail, sector, done_tail, child_iorequest_tail);
+	child_bio_tail->bi_rw 		= READ;
+
+	ret = bio_add_page(child_bio_tail, page_tail, PAGE_SIZE, 0);
+	if (!ret) {
+			IO_DONE_ERROR(parent_iorequest, ret);
+			LOGE("Unable to add Page to child bio tail\n");
+			goto exit_alloc;
+	}
+	atomic_set(&child_iorequest_tail->child_cnt, 0);
+	child_iorequest_tail->thread_pool	= read_thread_pool;
+	child_iorequest_tail->ior_bio 			= child_bio_tail;
+//	child_iorequest_tail->target 		= parent_iorequest->target;
+	child_iorequest_tail->lba 			= lba;
+	child_iorequest_head->sector 		= sector;
+	child_iorequest_tail->parent 		= parent_iorequest;
+	child_iorequest_tail->private 		= fecw_tail;
+	atomic_inc(&parent_iorequest->child_cnt);
+
+
+	partial_bytes_head = PAGE_SIZE - sector_pos_in_lba;
+	partial_bytes_tail = bio->bi_size - partial_bytes_head;
+
+	child_iorequest_head->bv_len 	= partial_bytes_head;
+	child_iorequest_head->bv_offset = sector_pos_in_lba;
+
+	child_iorequest_tail->bv_len 	= partial_bytes_tail;
+	child_iorequest_tail->bv_offset = 0;
+	//Set siblings
+	child_bio_head->bi_next = child_bio_tail;
+	child_bio_tail->bi_next = child_bio_head;
+	dz_q_iorequest_thread_pool(child_iorequest_head);
+	dz_q_iorequest_thread_pool(child_iorequest_tail);
+	return;
+
+exit_failure:
+	IO_DONE_ERROR(parent_iorequest, IO_ERROR_ENOMEM);
+
+exit_alloc:
+	if (page_head) {
+		dz_read_page_free(page_head);
+	}
+	if (page_tail) {
+		dz_read_page_free(page_tail);
+	}
+	if (child_bio_head) {
+		bio_put(child_bio_head); 
+	}
+	if (child_bio_tail) {
+		bio_put(child_bio_tail); 
+	}
+	if (child_iorequest_head) {
+		dz_io_free(child_iorequest_head);
+	}
+	if (child_iorequest_tail) {
+		dz_io_free(child_iorequest_tail);
+	}
+	iorequest_put(parent_iorequest);
+}
+
+
+RVOID dz_fec_align_write_for_partial_block(PIOREQUEST iorequest)
+{
+	PBIO	bio 				= iorequest->ior_bio; // Parent or Original bio
+	SECTOR	sector 				= bio->bi_sector;
+	LBA		lba					= iorequest->lba;
+	UINT	sector_pos_in_lba	= 0;
+	INT		size				= bio->bi_size;
+	PFEC_WRITE	fecw			= NULL;
+	PVOID   			pagebuf	= NULL;
+	PBIOVEC			pbvec		= NULL;	
+	PPAGE			page		= NULL;
+	INT i;
+
+	if (((sector * SECTOR_SIZE) % PAGE_SIZE) == 0 ) {
+		// Start Sector is Page Aligned. One bio will be created
+do_rmw:
+
+		if (!(fecw = GET_FEC_SINGLE_FREE_BUFFER())) {
+			DELAY_MICRO_SECONDS(1);
+			IO_DONE_BUSY(iorequest);
+			return;
+		}
+		//sector_pos_in_lba = (sector * SECTOR_SIZE)  - (lba * PAGE_SIZE);
+
+		fecw->lba 	= lba;
+		//Protect state so that during flush it will be consistent.
+
+		if (bio->bi_vcnt > 1) {
+			//TODO:Since it is a partial bio, so its vcnt should be 1
+			//We need to handle the case where it is more than 1
+			BUG_ON(1);
+		}
+
+		page = dz_fec_align_read_page_sync(iorequest, bio, sector);
+		iorequest->ior_bio = bio;
+		if (!page) {
+			IO_DONE_ERROR(iorequest, IO_ERROR_ENOMEM);
+			return;
+		}
+
+		//First copy the full contents.
+		//TODO:We are un-necessarily copying some unwanted
+		//data
+		pagebuf = kmap(page);
+		PMEMCPY(fecw->bv_page, pagebuf, PAGE_SIZE);
+		kunmap(page);
+
+		//Now merge the changes to the original bio
+		bio_for_each_segment(pbvec, (bio), i) {
+			pagebuf = kmap(pbvec->bv_page);
+			pagebuf += pbvec->bv_offset;
+			PMEMCPY(fecw->bv_page + sector_pos_in_lba, pagebuf, pbvec->bv_len);	
+			kunmap(pbvec->bv_page);
+		}
+
+		SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+
+		WRITE_IO_DONE(iorequest);
+		//print_data(fecw->bv_page);
+
+		FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, lba);
+
+		iorequest_put(iorequest);
+		dz_read_page_free(page);
+
+		return;
+
+	} else {
+		// Here sector + bv_len can be inside the same lba or spill over to next lba
+		sector_pos_in_lba = (sector * SECTOR_SIZE)  - (lba * PAGE_SIZE);
+
+		if ((sector_pos_in_lba + size) <= PAGE_SIZE) { 
+			// Falls into Singe Page boundary
+			sector_pos_in_lba = (sector * SECTOR_SIZE)  - (lba * PAGE_SIZE);
+			goto do_rmw;
+			
+		} else {
+			// Spill over to next lba/block
+			// Here both pages i.e. head and tail will involve
+			// Read Modify Write operations
+
+			dz_fec_align_write_double_page_async(iorequest,
+			sector_pos_in_lba,
+			dz_fec_align_write_double_page_async_biodone_head,
+			dz_fec_align_write_double_page_async_biodone_tail);
+		}
+	}
+	return;
+}
+
+RVOID dz_disk_write_iodone(PVOID iorequest , INT error)
+{
+	PIOREQUEST		ior 	= (PIOREQUEST)iorequest;
+	PFEC_WRITE		fecw 	= (PFEC_WRITE)ior->private;
+
+	FEC_ENTRY_WRITE_LOCK(fecw);
+	if (error) {
+		fecw->state 	= FECBUF_STATE_DISK_WRITE_ERROR;
+		fecw->io_completion.error = error;
+	} else {
+		fecw->state 	= FECBUF_STATE_DISK_WRITE_COMPLETED;
+	}
+	FEC_ENTRY_WRITE_UNLOCK(fecw);
+	complete(&fecw->io_completion.completion);
+
+	LOGD("Disk IO Done for LBA %lli with iorequest %p\n", ior->lba, ior);
+	iorequest_put(ior);
+	return;
+}
+
+//This function is used to write a single PAGE_SIZE block.
+//It handles two cases:
+//1. Write is PAGE_SIZE aligned
+//2. Write is PAGE_SIZE but unaligned and hence ends up
+//in issuing two partial writes spreading across two LBAs
+//i.e. starting with the current LBA and ending into 
+//(spilled over to) next LBA
+
+RVOID dz_fec_align_write_for_single_block(PIOREQUEST iorequest)
+{
+	PBIO		bio 			= iorequest->ior_bio; // Parent or Original bio
+	SECTOR		sector 			= bio->bi_sector;
+	LBA			lba				= iorequest->lba;
+	PFEC_WRITE	fecw			= NULL;
+	UINT	sector_pos_in_lba	= 0;
+	U64			sector_bytes	= sector * SECTOR_SIZE;
+	UINT		retry_cnt		= 0;
+
+	//If unaligned then handled the same way as it was handled for
+	//spillover  in partial block
+	if (((sector_bytes) % PAGE_SIZE) != 0 ) { 
+		LOG("Case1: Single block unaligned Sector = %lli\n", (U64)sector);
+		sector_pos_in_lba = (sector_bytes)  - (lba * PAGE_SIZE);
+
+		dz_fec_align_write_double_page_async(iorequest,
+		sector_pos_in_lba,
+		dz_fec_align_write_double_page_async_biodone_head,
+		dz_fec_align_write_double_page_async_biodone_tail);
+		return;
+	}
+
+	//Page Aligned IO 
+start_processing:
+	if (!(fecw = GET_FEC_SINGLE_FREE_BUFFER())) {
+		if (retry_cnt++ >= 64) {
+			LOG("Returning BUSY for lba %lli\n", lba);
+			IO_DONE_BUSY(iorequest);
+			return;
+		} else {
+			DELAY_MILLI_SECONDS(10);
+			goto start_processing;
+		}
+	}
+
+	// Now is the time to put this entry to read_table so that 
+	// if READ comes in, it should be served fastly
+	// Idea is to serve the Read IOs as fast as it can. I.e.
+	// if the IO which is to be read is already present in fec cache
+	// then serve from here.
+	// This buffer will be removed from LBA table when the flushing
+	// gets completed
+	FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, lba);
+
+	//print_fecw(fecw);
+	//SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_IN_PROGRESS);
+	
+	fecw->lba = lba;
+
+	//Copy the bio page to fecw so that it can be used by dedupe engine
+	// and/or any other purpose if required.
+	//Set state so that during flush it will be consistent.
+	COPY_FROM_BIO(fecw->bv_page, bio);
+	SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+
+	//At this point the actual data from application bio is stored in
+	// front end cache write buffer . Now is the time to complete this bio to top
+	// level application
+
+	if (iorequest->parent) { //For internally generated bios
+		WRITE_IO_DONE(iorequest);
+		return;
+	} 
+
+	// Since Application IO does not have parent so IO is completed to application
+	WRITE_IO_DONE(iorequest);
+	
+	//Now Free up the io request because this is direct application IO
+	//iorequest_put(iorequest);
+	
+	// New feature, where IOs are happening to backend after completion of IO
+	// to application. 
+	// Now the next stage is to pass this IO to dedupe engine.
+	// Since the IO is completed to Application so there is no bio existence.
+	// But we have already copied the data page from the bio to fecw->bv_page.
+	// This page data will be used by dedupe engine to check if it is
+	// duplicate or not.
+	// We are not going to create a new iorequest structure. Instead we are 
+	// gonna reuse the existing one but with modified entries.
+	
+	// Setting the fecw state. This will be cleared inside dedupe engine 
+	SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_DISK_WRITE_IN_PROGRESS);
+
+	fecw->io_completion.error = SUCCESS;
+	init_completion(&fecw->io_completion.completion);
+
+	// fecw->bv_page contains the application IO data.
+	iorequest->bv_buffer	= fecw->bv_page;
+	iorequest->flush_iodone = dz_disk_write_iodone;
+
+	//Note : Here the bio is NULL. This is to ensure that this is internally
+	// generated IO
+	iorequest->ior_bio 			= NULL;
+
+	// fecw is stored as private element in iorequest. This will be used in
+	// flush process
+	iorequest->private		= fecw;
+
+	//Increment the ref_cnt of iorequest
+	iorequest_get(iorequest);
+
+	// There are two entitities here: iorequest and fecw.
+	// iorequest: will go to dedupe engine and later to disk if required
+	// or ignored if duplicate.
+	// fecw: which is a frontend cache write buffer will be queued into
+	// the flush queue. Here the actual meaning of flushing means, 
+	// flushing of fec buffers to backend cache engine. This will save 
+	// time to fill the backend cache.
+
+	// Note: fecw will not be stored in backend cache until the dedupe
+	// engine process the iorequeust.
+	// E.g.
+	// The current context is frontend cache engine. From here the IO
+	// data processing is splitted into dedupe engine and bec engine.
+	// But bec engine will not get the IO data until dedupe engine 
+	// finishes that IO
+	
+
+	// fecw goes to flush queue of fec_tables_flush
+	dz_fec_add_write_buffer_to_flushq(fecw);
+
+	LOGD("Disk IO Start for LBA %lli with iorequest %p\n", lba, iorequest);
+
+	// iorequest goes to dedupe engine queue
+	dz_q_iorequest(dedupe_thread_pool, iorequest); //Invokes dz_dedupe_io()
+
+	return;
+
+}
+// This function will not allocate any new pages or child bios
+// It essentially means that no splitting of bios will occur here.
+// which will help us to do the application io done here itself.
+RVOID dz_fec_align_write_both_aligned(PIOREQUEST piorequest)
+{
+	PFEC_WRITE	fecw				= NULL;
+	PBIO		bio 				= piorequest->ior_bio; // Parent or Original bio
+	SIZE  		io_size				= bio->bi_size; // Parent or Original bio size
+	SECTOR		sector 				= bio->bi_sector;
+	LBA			lba					= piorequest->lba;
+	PVOID		pfecwpage 			= NULL;
+	PBIOVEC		cur_bvec  			= NULL;
+	INT			bi_vcnt				= 0;
+	INT			bi_vcnt_max			= 0;
+	INT			bv_len				= 0;
+	INT			remaining_bv_len	= 0;
+	UINT		sector_pos_in_lba	= 0;
+	PVOID   	pagebuf				= NULL;
+	SIZE		sector_bytes		= 0;
+	U64			tot_bytes			= 0;
+	INT			data_bytes			= 0;
+	INT 		aligned_bytes 		= 0;
+	INT			total_blocks_needed	= 0;
+	INT			count				= 0;
+	LIST_HEAD	free_list_head;
+	UINT		retry_cnt			= 0;
+
+
+	//TODO: Optimization required. Try to use bit shifting to simplify this
+	sector_bytes 		= sector * SECTOR_SIZE;
+	sector_pos_in_lba 	= sector_bytes   - (lba * PAGE_SIZE);
+	tot_bytes 			= sector_bytes + io_size;
+	aligned_bytes 		= io_size ; //Always in multiples of PAGE_SIZE
+
+	//Calculate total blocks: one for head, one for tail and ...
+	total_blocks_needed = (aligned_bytes / PAGE_SIZE);
+	INIT_LIST_HEAD(&free_list_head);
+start_processing:
+	//Allocate that many write blocks
+	if (!(fecw = GET_FEC_MULTIPLE_FREE_BUFFERS(total_blocks_needed))) {
+		if (retry_cnt++ >= 1048576) {
+			IO_DONE_BUSY(piorequest);
+			return;
+		} else {
+			DELAY_MICRO_SECONDS(2);
+			goto start_processing;
+		}
+	}
+
+	for (count = 0; count < total_blocks_needed; count++) {
+		//PRINT_POINTER(fecw);
+		list_add_tail(&(fecw->ioq), &free_list_head);
+		SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_IN_PROGRESS);
+		fecw++;
+	}
+
+	//LOG("Printing Aligned part\n");
+
+	//Now copy the intermediate aligned data. It can be of any no. of pages
+	//Also the data in fecw page will always be stored in zeroth offset.
+	//This operation will not include any RMWs because the data is block/Page
+	//aligned. So there is no need to issue a Read bio
+	//Note continuing with previous bi_vcnt and cur_bvec
+	bi_vcnt_max = bio->bi_vcnt;
+	
+	while(aligned_bytes) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		list_del(&fecw->ioq);
+		//PRINT_POINTER(fecw);
+
+		fecw->lba		= lba;
+		data_bytes 		= PAGE_SIZE;
+		pfecwpage 		= fecw->bv_page;
+
+		if (remaining_bv_len) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset + (cur_bvec->bv_len - remaining_bv_len);
+				PMEMCPY(pfecwpage, pagebuf, remaining_bv_len);
+				kunmap(cur_bvec->bv_page);
+				pfecwpage 		+= remaining_bv_len;
+				data_bytes 		-= remaining_bv_len;
+				bi_vcnt++;
+				remaining_bv_len = 0;
+		}
+
+		while(bi_vcnt < bi_vcnt_max) {
+			cur_bvec 	= &bio->bi_io_vec[bi_vcnt];
+			bv_len 		= cur_bvec->bv_len;
+
+			if (bv_len >= data_bytes) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, data_bytes);
+				kunmap(cur_bvec->bv_page);
+
+				if (bv_len == data_bytes) {
+					bi_vcnt++;
+				} else {
+					remaining_bv_len = bv_len - data_bytes;
+				}
+				aligned_bytes -= PAGE_SIZE;
+				//print_fecws(fecw, "Aligned Part");
+				SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+				FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, lba);
+
+				break;
+			} else {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, bv_len);
+				kunmap(cur_bvec->bv_page);
+
+				data_bytes -= bv_len;
+				bi_vcnt++;
+				pfecwpage += bv_len;
+
+			}
+		} // End of Inner While loop
+		lba++;
+	} //End of Outer While loop
+
+	WRITE_IO_DONE(piorequest);
+	iorequest_put(piorequest);
+	//There should not be any parent to this piorequest
+	if (piorequest->parent) {
+		BUG_ON(1);
+	}
+	return;
+
+}
+
+//Here the start offset will be page aligned
+//but the end (referred as tail) will be less than
+//PAGE_SIZE
+//Top level application IO will be done inside the callback of
+//tail bio
+RVOID dz_fec_align_write_tail_unaligned(PIOREQUEST piorequest)
+{
+	PFEC_WRITE	fecw				= NULL;
+	PBIO		bio 				= piorequest->ior_bio; // Parent or Original bio
+	SIZE  		io_size				= bio->bi_size; // Parent or Original bio size
+	SECTOR		sector 				= bio->bi_sector;
+	LBA			lba					= piorequest->lba;
+	PVOID		pfecwpage 			= NULL;
+	PBIOVEC		cur_bvec  			= NULL;
+	INT			bi_vcnt				= 0;
+	INT			bi_vcnt_max			= 0;
+	INT			bv_len				= 0;
+	INT			remaining_bv_len	= 0;
+	UINT		sector_pos_in_lba	= 0;
+	PVOID   	pagebuf				= NULL;
+	SIZE		sector_bytes		= 0;
+	U64			tot_bytes			= 0;
+	INT			data_bytes			= 0;
+	INT 		aligned_bytes 		= 0;
+	INT			partial_bytes_tail 	= 0;
+	PIOREQUEST	iorequest_tail		= NULL;
+	BIOVEC		biovec2;
+	INT			total_blocks_needed	= 0;
+	INT			count				= 0;
+	LIST_HEAD	free_list_head		;
+
+
+	//TODO: Optimization required. Try to use bit shifting to simplify this
+	sector_bytes 		= sector * SECTOR_SIZE;
+	sector_pos_in_lba 	= sector_bytes   - (lba * PAGE_SIZE);
+	tot_bytes 			= sector_bytes + io_size;
+	partial_bytes_tail 	= tot_bytes % PAGE_SIZE;
+	aligned_bytes 		= io_size - partial_bytes_tail ; //Always in multiples of PAGE_SIZE
+
+	//Calculate total blocks: one for tail and ...
+	total_blocks_needed = 1 + (aligned_bytes / PAGE_SIZE);
+	
+	INIT_LIST_HEAD(&free_list_head);
+	//Allocate that many write blocks
+	if (!(fecw = GET_FEC_MULTIPLE_FREE_BUFFERS(total_blocks_needed))) {
+		goto exit_failure;
+	}
+	for (count = 0; count < total_blocks_needed; count++) {
+		PRINT_POINTER(fecw);
+		list_add_tail(&(fecw->ioq), &free_list_head);
+		SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_IN_PROGRESS);
+		fecw++;
+	}
+	
+	atomic_set(&piorequest->child_cnt, 0);
+
+	//Create a bio for Tail Part. Because it involves RMW operation
+	//MW will be taken carre inside the done callback function
+	//Application IO will also be done inside the done callback
+	//function
+	iorequest_tail = dz_fec_align_read_page_async(piorequest, bio, sector, &biovec2,
+			dz_fec_align_read_page_async_biodone_tail);
+	if (!iorequest_tail) {
+		goto exit_failure;
+	}
+
+	//By now we are done with resource allocation part.
+	//Now we need to copy the parent bio pages in their
+	//corresponding fecws
+ 
+	print_bio(bio);
+
+	LOG("Printing Head Aligned part\n");
+
+	//Now copy the head aligned data. It can be of any no. of pages
+	//Also the data in fecw page will always be stored in zeroth offset.
+	//This operation will not include any RMWs because the data is block/Page
+	//aligned. So there is no need to issue a Read bio
+	
+	bi_vcnt_max = bio->bi_vcnt;
+	while(aligned_bytes) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		list_del(&fecw->ioq);
+		PRINT_POINTER(fecw);
+
+		fecw->lba		= lba;
+//		fecw->bv_offset	= 0;
+//		fecw->bv_len	= PAGE_SIZE;
+		data_bytes 		= PAGE_SIZE;
+		pfecwpage 		= fecw->bv_page;
+
+		if (remaining_bv_len) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset + (cur_bvec->bv_len - remaining_bv_len);
+				PMEMCPY(pfecwpage, pagebuf, remaining_bv_len);
+				kunmap(cur_bvec->bv_page);
+				pfecwpage 		+= remaining_bv_len;
+				data_bytes 		-= remaining_bv_len;
+				bi_vcnt++;
+				remaining_bv_len = 0;
+
+		}
+
+		while(bi_vcnt < bi_vcnt_max) {
+			cur_bvec 	= &bio->bi_io_vec[bi_vcnt];
+			bv_len 		= cur_bvec->bv_len;
+
+			if (bv_len >= data_bytes) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, data_bytes);
+				kunmap(cur_bvec->bv_page);
+
+				if (bv_len == data_bytes) {
+					bi_vcnt++;
+				} else {
+					remaining_bv_len = bv_len - data_bytes;
+				}
+				aligned_bytes -= PAGE_SIZE;
+				print_fecws(fecw, "Aligned Part");
+				SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+				FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, lba);
+				break;
+			} else {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, bv_len);
+				kunmap(cur_bvec->bv_page);
+
+				data_bytes -= bv_len;
+				bi_vcnt++;
+				pfecwpage += bv_len;
+
+			}
+		} // End of Inner While loop
+		sector += SECTORS_PER_PAGE;
+		lba++;
+	} //End of Outer While loop
+
+	//Now copy the unaligned tail part. Aligned tail part is already
+	//included in the above loop
+
+	LOG("Printing Tail part\n");
+	//Extract last entry of fecw from free list
+
+	if (!(list_empty(&free_list_head))) {
+		BUG_ON(1);
+	}
+	fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+	list_del(&fecw->ioq);
+	PRINT_POINTER(fecw);
+
+	iorequest_tail->lba 		= lba;
+	iorequest_tail->private 	= fecw;
+	iorequest_tail->bv_offset 	= 0;
+	iorequest_tail->bv_len 		= partial_bytes_tail;
+	fecw->lba					= lba;
+	//fecw->bv_offset			= 0;
+	//fecw->bv_len			= partial_bytes_tail;
+	data_bytes 					= partial_bytes_tail;
+	pfecwpage 					= fecw->bv_page;
+
+	//Note continuing with previous bi_vcnt
+	if (remaining_bv_len) {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset + (cur_bvec->bv_len - remaining_bv_len);
+			PMEMCPY(pfecwpage, pagebuf, remaining_bv_len);
+			kunmap(cur_bvec->bv_page);
+			pfecwpage 		+= remaining_bv_len;
+			data_bytes 		-= remaining_bv_len;
+			bi_vcnt++;
+			remaining_bv_len = 0;
+
+	}
+	
+	while(bi_vcnt < bi_vcnt_max) {
+		cur_bvec 	= &bio->bi_io_vec[bi_vcnt];
+		bv_len 		= cur_bvec->bv_len;
+
+		if (bv_len >= data_bytes) {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, data_bytes);
+			kunmap(cur_bvec->bv_page);
+
+			if (bv_len == data_bytes) {
+				bi_vcnt++;
+			} else {
+				remaining_bv_len = bv_len - data_bytes;
+			}
+			//print_fecw(fecw);
+			break;
+		} else {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, bv_len);
+			kunmap(cur_bvec->bv_page);
+
+			data_bytes -= bv_len;
+			bi_vcnt++;
+			pfecwpage += bv_len;
+
+		}
+	} // End of Inner While loop
+
+	//Enqueue the tail child bio
+	dz_q_iorequest_thread_pool(iorequest_tail);
+	return;
+
+exit_failure:
+	DELAY_MICRO_SECONDS(1);
+	IO_DONE_BUSY(piorequest);
+	for (count = 0; count < total_blocks_needed; count++) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		if (!fecw) continue;
+		list_del(&fecw->ioq);
+		FEC_ENTRY_WRITE_LOCK(fecw);
+		fecw->state = FECBUF_STATE_IDLE;
+		FEC_ENTRY_WRITE_UNLOCK(fecw);
+	}
+}
+
+//Here the start offset will be page unaligned (also
+//referred as head) but the end will be aligned to PAGE_SIZE
+//Top level application IO will be done inside the callback of
+//head bio
+
+RVOID dz_fec_align_write_head_unaligned(PIOREQUEST piorequest)
+{
+	PFEC_WRITE	fecw				= NULL;
+	PBIO		bio 				= piorequest->ior_bio; // Parent or Original bio
+	SIZE  		io_size				= bio->bi_size; // Parent or Original bio size
+	SECTOR		sector 				= bio->bi_sector;
+	LBA			lba					= piorequest->lba;
+	PVOID		pfecwpage 			= NULL;
+	PBIOVEC		cur_bvec  			= NULL;
+	INT			bi_vcnt				= 0;
+	INT			bi_vcnt_max			= 0;
+	INT			bv_len				= 0;
+	INT			remaining_bv_len	= 0;
+	UINT		sector_pos_in_lba	= 0;
+	PVOID   	pagebuf				= NULL;
+	SIZE		sector_bytes		= 0;
+	U64			tot_bytes			= 0;
+	INT			data_bytes			= 0;
+	INT 		aligned_bytes 		= 0;
+	INT			partial_bytes_head 	= 0;
+	PIOREQUEST	iorequest_head		= NULL;
+	BIOVEC		biovec;
+	INT			total_blocks_needed	= 0;
+	INT			count				= 0;
+	LIST_HEAD	free_list_head		;
+
+
+	//TODO: Optimization required. Try to use bit shifting to simplify this
+	sector_bytes 		= sector * SECTOR_SIZE;
+	sector_pos_in_lba 	= sector_bytes   - (lba * PAGE_SIZE);
+	tot_bytes 			= sector_bytes + io_size;
+	partial_bytes_head 	= PAGE_SIZE - sector_pos_in_lba;
+	aligned_bytes 		= io_size - partial_bytes_head ; //Always in multiples of PAGE_SIZE
+
+	//Calculate total blocks: one for head, and ...
+	total_blocks_needed = 1 + (aligned_bytes / PAGE_SIZE);
+
+	INIT_LIST_HEAD(&free_list_head);
+	//Allocate that many write blocks
+	if (!(fecw = GET_FEC_MULTIPLE_FREE_BUFFERS(total_blocks_needed))) {
+		goto exit_failure;
+	}
+	for (count = 0; count < total_blocks_needed; count++) {
+		PRINT_POINTER(fecw);
+		list_add_tail(&(fecw->ioq), &free_list_head);
+		SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_IN_PROGRESS);
+		fecw++;
+	}
+
+	atomic_set(&piorequest->child_cnt, 0);
+
+	//Create a bio for Head Part. Because it involves RMW operation
+	//MW will be taken carre inside the done callback function
+	iorequest_head = dz_fec_align_read_page_async(piorequest, bio, sector, &biovec,
+			dz_fec_align_read_page_async_biodone_head);
+	if (!iorequest_head) {
+		goto exit_failure;
+	} 
+
+	//By now we are done with resource allocation part.
+	//Now we need to copy the parent bio pages in their
+	//corresponding fecws
+ 
+	print_bio(bio);
+
+	//Extract the first entry of fecw from free list
+	fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+	list_del(&fecw->ioq);
+	PRINT_POINTER(fecw);
+
+	fecw->lba 				= lba;
+	iorequest_head->private = fecw;
+	iorequest_head->lba		= lba;
+	iorequest_head->bv_offset	= sector_pos_in_lba;
+
+	//fecw->bv_offset		= sector_pos_in_lba;
+	//fecw->bv_len		= partial_bytes_head;
+
+	pfecwpage = fecw->bv_page + sector_pos_in_lba;
+	bi_vcnt_max = bio->bi_vcnt;
+	data_bytes = partial_bytes_head;
+	LOG("Printing Head part\n");
+
+	// Copy the head part of unaligned data. This will be less than a block size
+	// and hence will include a Read Modify Write operation
+	// Begin from zeroth index of bio vec array
+	while(bi_vcnt < bi_vcnt_max) {
+		cur_bvec = &bio->bi_io_vec[bi_vcnt];
+		bv_len = cur_bvec->bv_len;
+
+		if (bv_len >= data_bytes) {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, data_bytes);
+			kunmap(cur_bvec->bv_page);
+
+			if (bv_len == data_bytes) {
+				bi_vcnt++;
+			} else {
+				remaining_bv_len = bv_len - data_bytes;
+
+			}
+			break;
+		} else {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, bv_len);
+			kunmap(cur_bvec->bv_page);
+
+			data_bytes -= bv_len;
+			bi_vcnt++;
+			pfecwpage += bv_len;
+
+		}
+	} // End of While loop
+
+	sector += (partial_bytes_head  / SECTOR_SIZE);
+	lba++;
+
+
+	LOG("Printing Tail Aligned part\n");
+
+	//Now copy the intermediate aligned data. It can be of any no. of pages
+	//Also the data in fecw page will always be stored in zeroth offset.
+	//This operation will not include any RMWs because the data is block/Page
+	//aligned. So there is no need to issue a Read bio
+	//Note continuing with previous bi_vcnt and cur_bvec
+	
+	while(aligned_bytes) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		list_del(&fecw->ioq);
+		PRINT_POINTER(fecw);
+
+		fecw->lba		= lba;
+		//fecw->bv_offset	= 0;
+		//fecw->bv_len	= PAGE_SIZE;
+		data_bytes 		= PAGE_SIZE;
+		pfecwpage 		= fecw->bv_page;
+
+		if (remaining_bv_len) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset + (cur_bvec->bv_len - remaining_bv_len);
+				PMEMCPY(pfecwpage, pagebuf, remaining_bv_len);
+				kunmap(cur_bvec->bv_page);
+				pfecwpage 		+= remaining_bv_len;
+				data_bytes 		-= remaining_bv_len;
+				bi_vcnt++;
+				remaining_bv_len = 0;
+
+		}
+
+		while(bi_vcnt < bi_vcnt_max) {
+			cur_bvec 	= &bio->bi_io_vec[bi_vcnt];
+			bv_len 		= cur_bvec->bv_len;
+
+			if (bv_len >= data_bytes) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, data_bytes);
+				kunmap(cur_bvec->bv_page);
+
+				if (bv_len == data_bytes) {
+					bi_vcnt++;
+				} else {
+					remaining_bv_len = bv_len - data_bytes;
+				}
+				aligned_bytes -= PAGE_SIZE;
+				print_fecws(fecw, "Aligned Part");
+				SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+				FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, lba);
+				break;
+			} else {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, bv_len);
+				kunmap(cur_bvec->bv_page);
+
+				data_bytes -= bv_len;
+				bi_vcnt++;
+				pfecwpage += bv_len;
+
+			}
+		} // End of Inner While loop
+		sector += SECTORS_PER_PAGE;
+		lba++;
+	} //End of Outer While loop
+
+	//Enqueue the head child bio
+	dz_q_iorequest_thread_pool(iorequest_head);
+	return;
+
+exit_failure:
+	DELAY_MICRO_SECONDS(1);
+	IO_DONE_BUSY(piorequest);
+	for (count = 0; count < total_blocks_needed; count++) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		if (!fecw) continue;
+		list_del(&fecw->ioq);
+		FEC_ENTRY_WRITE_LOCK(fecw);
+		fecw->state = FECBUF_STATE_IDLE;
+		FEC_ENTRY_WRITE_UNLOCK(fecw);
+	}
+}
+
+//Here the start offset will be page unaligned (also
+//referred as head) and end offset (tail) will also be page
+//unaligned, but the intermediate ones will be page aligned.
+//Here two child bios will be created one for head and one for
+//tail.
+//Top level application IO will be done when both head and tail
+//are done
+RVOID dz_fec_align_write_both_unaligned(PIOREQUEST piorequest)
+{
+	PFEC_WRITE	fecw				= NULL;
+	PBIO		bio 				= piorequest->ior_bio; // Parent or Original bio
+	SIZE  		io_size				= bio->bi_size; // Parent or Original bio size
+	SECTOR		sector 				= bio->bi_sector;
+	LBA			lba					= piorequest->lba;
+	PVOID		pfecwpage 			= NULL;
+	PBIOVEC		cur_bvec  			= NULL;
+	INT			bi_vcnt				= 0;
+	INT			bi_vcnt_max			= 0;
+	INT			bv_len				= 0;
+	INT			remaining_bv_len	= 0;
+	UINT		sector_pos_in_lba	= 0;
+	PVOID   	pagebuf				= NULL;
+	SIZE		sector_bytes		= 0;
+	U64			tot_bytes			= 0;
+	INT			data_bytes			= 0;
+	INT 		aligned_bytes 		= 0;
+	INT			partial_bytes_head 	= 0;
+	INT			partial_bytes_tail 	= 0;
+	PIOREQUEST	iorequest_head		= NULL;
+	PIOREQUEST	iorequest_tail		= NULL;
+	BIOVEC		biovec;
+	BIOVEC		biovec2;
+	INT			total_blocks_needed	= 0;
+	INT			count				= 0;
+	LIST_HEAD	free_list_head		;
+
+
+	//TODO: Optimization required. Try to use bit shifting to simplify this
+	sector_bytes 		= sector * SECTOR_SIZE;
+	sector_pos_in_lba 	= sector_bytes   - (lba * PAGE_SIZE);
+	tot_bytes 			= sector_bytes + io_size;
+	partial_bytes_head 	= PAGE_SIZE - sector_pos_in_lba;
+	partial_bytes_tail 	= tot_bytes % PAGE_SIZE;
+	aligned_bytes 		= io_size - partial_bytes_head - partial_bytes_tail ; //Always in multiples of PAGE_SIZE
+
+	//Calculate total blocks: one for head, one for tail and ...
+	total_blocks_needed = 1 + 1 + (aligned_bytes / PAGE_SIZE);
+
+	INIT_LIST_HEAD(&free_list_head);
+	//Allocate that many write blocks
+	if (!(fecw = GET_FEC_MULTIPLE_FREE_BUFFERS(total_blocks_needed))) {
+		goto exit_failure;
+	}
+	for (count = 0; count < total_blocks_needed; count++) {
+		PRINT_POINTER(fecw);
+		list_add_tail(&(fecw->ioq), &free_list_head);
+		SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_IN_PROGRESS);
+		fecw++;
+	}
+
+
+	atomic_set(&piorequest->child_cnt, 0);
+
+	//Create a bio for Head Part. Because it involves RMW operation
+	//MW will be taken carre inside the done callback function
+	iorequest_head = dz_fec_align_read_page_async(piorequest, bio, sector, &biovec,
+			dz_fec_align_read_page_async_biodone_head);
+	if (!iorequest_head) {
+		goto exit_failure;
+	} 
+
+	//We need to create a Read BIO for tail as well because it involves RMW.
+	//MW will be taken care inside the done function
+	iorequest_tail = dz_fec_align_read_page_async(piorequest, bio, sector, &biovec2,
+			dz_fec_align_read_page_async_biodone_tail);
+	if (!iorequest_tail) {
+		goto exit_failure;
+	}
+
+	//By now we are done with resource allocation part.
+	//Now we need to copy the parent bio pages in their
+	//corresponding fecws
+ 
+	print_bio(bio);
+
+	//Extract the first entry of fecw from free list
+	fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+	list_del(&fecw->ioq);
+	PRINT_POINTER(fecw);
+
+	fecw->lba 					= lba;
+	iorequest_head->private 	= fecw;
+	iorequest_head->lba			= lba;
+	iorequest_head->bv_offset 	= sector_pos_in_lba;
+	iorequest_head->bv_len 		= partial_bytes_head;
+
+	//fecw->bv_offset		= sector_pos_in_lba;
+	//fecw->bv_len		= partial_bytes_head;
+
+	pfecwpage = fecw->bv_page + sector_pos_in_lba;
+	bi_vcnt_max = bio->bi_vcnt;
+	data_bytes = partial_bytes_head;
+	LOG("Printing Head part\n");
+
+	// Copy the head part of unaligned data. This will be less than a block size
+	// and hence will include a Read Modify Write operation
+	// Begin from zeroth index of bio vec array
+	while(bi_vcnt < bi_vcnt_max) {
+		cur_bvec = &bio->bi_io_vec[bi_vcnt];
+		bv_len = cur_bvec->bv_len;
+
+		if (bv_len >= data_bytes) {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, data_bytes);
+			kunmap(cur_bvec->bv_page);
+
+			if (bv_len == data_bytes) {
+				bi_vcnt++;
+			} else {
+				remaining_bv_len = bv_len - data_bytes;
+
+			}
+			break;
+		} else {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, bv_len);
+			kunmap(cur_bvec->bv_page);
+
+			data_bytes -= bv_len;
+			bi_vcnt++;
+			pfecwpage += bv_len;
+
+		}
+	} // End of While loop
+
+	sector += (partial_bytes_head  / SECTOR_SIZE);
+	lba++;
+
+	//Enqueue the head child bio
+	dz_q_iorequest_thread_pool(iorequest_head);
+
+	LOG("Printing Intermediate Aligned part\n");
+
+	//Now copy the intermediate aligned data. It can be of any no. of pages
+	//Also the data in fecw page will always be stored in zeroth offset.
+	//This operation will not include any RMWs because the data is block/Page
+	//aligned. So there is no need to issue a Read bio
+	//Note continuing with previous bi_vcnt and cur_bvec
+	
+	while(aligned_bytes) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		list_del(&fecw->ioq);
+		PRINT_POINTER(fecw);
+
+		fecw->lba		= lba;
+		//fecw->bv_offset	= 0;
+		//fecw->bv_len	= PAGE_SIZE;
+		data_bytes 		= PAGE_SIZE;
+		pfecwpage 		= fecw->bv_page;
+
+		if (remaining_bv_len) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset + (cur_bvec->bv_len - remaining_bv_len);
+				PMEMCPY(pfecwpage, pagebuf, remaining_bv_len);
+				kunmap(cur_bvec->bv_page);
+				pfecwpage 		+= remaining_bv_len;
+				data_bytes 		-= remaining_bv_len;
+				bi_vcnt++;
+				remaining_bv_len = 0;
+
+		}
+
+		while(bi_vcnt < bi_vcnt_max) {
+			cur_bvec 	= &bio->bi_io_vec[bi_vcnt];
+			bv_len 		= cur_bvec->bv_len;
+
+			if (bv_len >= data_bytes) {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, data_bytes);
+				kunmap(cur_bvec->bv_page);
+
+				if (bv_len == data_bytes) {
+					bi_vcnt++;
+				} else {
+					remaining_bv_len = bv_len - data_bytes;
+				}
+				aligned_bytes -= PAGE_SIZE;
+				print_fecws(fecw, "Aligned Part");
+		
+				SET_FEC_BUFFER_STATE(fecw, FECBUF_STATE_MEMORY_WRITE_COMPLETED);
+				FEC_ADD_WRITE_BUFFER_TO_LBA_TABLE(fecw, lba);
+				break;
+			} else {
+				pagebuf = kmap(cur_bvec->bv_page);
+				pagebuf += cur_bvec->bv_offset;
+
+				PMEMCPY(pfecwpage, pagebuf, bv_len);
+				kunmap(cur_bvec->bv_page);
+
+				data_bytes -= bv_len;
+				bi_vcnt++;
+				pfecwpage += bv_len;
+
+			}
+		} // End of Inner While loop
+		sector += SECTORS_PER_PAGE;
+		lba++;
+	} //End of Outer While loop
+
+	//Now copy the unaligned tail part. Aligned tail part is already
+	//included in the above loop
+
+	LOG("Printing Tail part\n");
+	//Extract last entry of fecw from free list
+
+	fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+	list_del(&fecw->ioq);
+	if (!(list_empty(&free_list_head))) {
+		BUG_ON(1);
+	}
+	PRINT_POINTER(fecw);
+
+	iorequest_tail->lba 		= lba;
+	iorequest_tail->private 	= fecw;
+	iorequest_tail->bv_offset 	= 0;
+	iorequest_tail->bv_len 		= partial_bytes_tail;
+	fecw->lba					= lba;
+	//fecw->bv_offset				= 0;
+	//fecw->bv_len				= partial_bytes_tail;
+	data_bytes 					= partial_bytes_tail;
+	pfecwpage 					= fecw->bv_page;
+
+	//Note continuing with previous bi_vcnt
+	if (remaining_bv_len) {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset + (cur_bvec->bv_len - remaining_bv_len);
+			PMEMCPY(pfecwpage, pagebuf, remaining_bv_len);
+			kunmap(cur_bvec->bv_page);
+			pfecwpage 		+= remaining_bv_len;
+			data_bytes 		-= remaining_bv_len;
+			bi_vcnt++;
+			remaining_bv_len = 0;
+
+	}
+	
+	while(bi_vcnt < bi_vcnt_max) {
+		cur_bvec 	= &bio->bi_io_vec[bi_vcnt];
+		bv_len 		= cur_bvec->bv_len;
+
+		if (bv_len >= data_bytes) {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, data_bytes);
+			kunmap(cur_bvec->bv_page);
+
+			if (bv_len == data_bytes) {
+				bi_vcnt++;
+			} else {
+				remaining_bv_len = bv_len - data_bytes;
+			}
+			//print_fecw(fecw);
+			break;
+		} else {
+			pagebuf = kmap(cur_bvec->bv_page);
+			pagebuf += cur_bvec->bv_offset;
+
+			PMEMCPY(pfecwpage, pagebuf, bv_len);
+			kunmap(cur_bvec->bv_page);
+
+			data_bytes -= bv_len;
+			bi_vcnt++;
+			pfecwpage += bv_len;
+
+		}
+	} // End of Inner While loop
+
+	//Enqueue the tail child bio
+	dz_q_iorequest_thread_pool(iorequest_tail);
+	LOG("Returning after enqueuing tail\n");
+	return;
+
+exit_failure:
+	DELAY_MICRO_SECONDS(1);
+	IO_DONE_BUSY(piorequest);
+	for (count = 0; count < total_blocks_needed; count++) {
+
+		fecw = list_first_entry(&free_list_head, union dz_fec_data_write_s, ioq);
+		if (!fecw) continue;
+		list_del(&fecw->ioq);
+		FEC_ENTRY_WRITE_LOCK(fecw);
+		fecw->state = FECBUF_STATE_IDLE;
+		FEC_ENTRY_WRITE_UNLOCK(fecw);
+	}
+
+	if (iorequest_head) {
+		dz_read_page_free(bio_page(iorequest_head->ior_bio));
+		bio_put(iorequest_head->ior_bio);
+		dz_io_free(iorequest_head);
+		return;
+	}
+}
+
+RVOID dz_fec_align_write_for_multi_block(PIOREQUEST piorequest)
+{
+	PBIO	bio 			= piorequest->ior_bio; // Parent or Original bio
+	SECTOR	sector 			= bio->bi_sector;
+	SIZE  	io_size			= bio->bi_size; // Parent or Original bio size
+	SIZE	sector_bytes	= 0;
+	U64		tot_bytes		= 0;
+
+	sector_bytes = sector * SECTOR_SIZE;
+
+	// Four cases can exists here:
+	// 1. When bio is properly aligned with all pages. It means Head and tail of bio both are Page aligned
+	// 2. When head of bio is Page Aligned but not tail.
+	// 3. When head is not Page aligned but tail is aligned
+	// 4. When head and tail both are not Page aligned
+	//
+	// In terms of handling: Case 1 and 2 can be handled together.
+	// Case 3 and 4 can also be handled together.
+	if ((sector_bytes  % PAGE_SIZE) == 0 ) { 
+	// Start Sector is Page Aligned. Check if tail is also aligned
+	  
+		if (((sector_bytes + io_size)  % PAGE_SIZE) == 0 ) { 
+			// Complete bio is page aligned. So child bios will be 1:1 mapping of pages
+		
+			//LOG("Case1: BIO is multiple blocks aligned i.e. Head and Tail Aligned\n");
+			// Case 1
+			//LOG("Case1:BIO is Head Aligned and Tail Aligned\n");
+			dz_fec_align_write_both_aligned(piorequest);
+
+		} else {
+			// Tail of the bio is NOT page aligned. 
+			// Case 2
+			// Here last bv_page will partial page data. 
+			//LOG("Case2: BIO is Head Aligned but Not Tail Aligned\n");
+			LOG("Case2:BIO is Head Aligned and Tail UnAligned\n");
+			dz_fec_align_write_tail_unaligned(piorequest);
+		}
+	} else if (((tot_bytes = (sector_bytes + io_size))  % PAGE_SIZE) == 0 ) { 
+		// Head is not Page Aligned, but Tail is Page Aligned
+		// Case 3
+		// Here First page will be a partial one, rest will be complete ones.
+		// Here no. of Pages will be same to child bios
+
+		//LOG("Case3: BIO is Tail Aligned but Not Head Aligned\n");
+		
+		// Unaligned part of total bytes. It will reside in the Head of bio because tail is always aligned
+		LOG("Case3:BIO is Head UnAligned and Tail Aligned\n");
+		dz_fec_align_write_head_unaligned(piorequest);
+	} else  {
+		// Head and Tail both are not Page Aligned
+		// Case 4
+		// Here First page will be a partial one.
+		// Last Page will also be partial one
+		// Here is the processing part
+		// Process the unaligned head part
+		// Process the unaligned tail part
+		// Process the aligned part from tail to head 
+		LOG("Case4:BIO is Neither Head Aligned Nor Tail Aligned\n");
+		dz_fec_align_write_both_unaligned(piorequest);
+	}
+}
+
+RVOID dz_fec_align_write_io(PIOREQUEST iorequest)
+{
+	PBIO		bio 		= iorequest->ior_bio; // Parent or Original bio
+	SIZE  		io_size		= bio->bi_size; // Parent or Original bio size
+
+
+	if (io_size < PAGE_SIZE) {
+		LOGD("Write Processing io_size for partial block at lba %lli\n",
+		dz_convert_sector_to_lba(bio->bi_sector));
+
+		INC_COUNTER(fec_iocount_writes_partial_page);
+		dz_fec_align_write_for_partial_block(iorequest);
+		return;
+
+	} else if (io_size == PAGE_SIZE) {
+
+		LOGD("Write Processing io_size for single block at lba %lli\n",
+		dz_convert_sector_to_lba(bio->bi_sector));
+
+		INC_COUNTER(fec_iocount_writes_single_page);
+
+		dz_fec_align_write_for_single_block(iorequest);
+		return;
+
+	} else if (io_size > PAGE_SIZE) {
+		LOGD("Write Processing io_size for multiple blocks at lba %lli\n",
+		dz_convert_sector_to_lba(bio->bi_sector));
+
+		INC_COUNTER(fec_iocount_writes_multi_page);
+		dz_fec_align_write_for_multi_block(iorequest);
+		return;
+
+	} else {
+		//Should not come here
+		BUG_ON(1);
+	}
+	return;
+}

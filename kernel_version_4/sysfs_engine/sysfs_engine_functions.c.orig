@@ -1,0 +1,2273 @@
+/*
+ * THIS  SOFTWARE   CONTAINS  CONFIDENTIAL  INFORMATION
+ * AND TRADE SECRETS OF N.L. VERMA / DATUMSOFT SYSTEMS.
+ * USE, DISCLOSURE, COPY OR  REPRODUCTION IS PROHIBITED
+ * WITHOUT  THE  PRIOR  EXPRESS  WRITTEN  PERMISSION OF
+ * NL VERMA / DATUMSOFT SYSTEMS.
+ */
+
+#include "prototypes.h"
+
+#define TEST_PASSED   100
+#define TEST_FAILED   -1
+
+extern int dz_switch_passthrough_mode;
+extern int dz_switch_passthrough_read;
+extern int dz_switch_passthrough_write;
+
+extern INT dz_switch_fec_engine;
+extern INT dz_switch_bec_engine;
+extern INT dz_switch_dedupe_engine;
+extern INT dz_switch_alignment_engine;
+extern INT dz_switch_alignment_engine_multi_block_read;
+extern INT dz_switch_alignment_engine_multi_block_write;
+extern INT dz_switch_alignment_engine_partial_block_read;
+extern INT dz_switch_alignment_engine_partial_block_write;
+
+
+//extern ATOMIC64 dz_iorequest_alloc_cnt;
+//extern ATOMIC64 dz_iorequest_free_cnt;
+extern BASIC_COUNTERS  dz_basic_counters;
+extern PBASIC_COUNTERS pdz_basic_counters;
+
+//extern ATOMIC64 dz_page_alloc_cnt;
+//extern ATOMIC64 dz_page_free_cnt;
+
+extern SIZE 			TARGET_DEVICE_SIZE;
+
+extern PAVM_DEVICE      aisa_device_object;
+extern NAME             DATA_DISK_DEVICE_NAME;
+extern OBJECT_LIST 	global_object_list;
+extern U64 lba_table_size;
+extern U64 pba_table_size;
+extern U64 hash_table_size;
+extern U32 number_of_longs_for_pba;
+extern U32 number_of_longs_for_lba;
+extern U32 number_of_longs_for_gpba;
+extern ULONG            metadata_flush_interval;
+extern U64 metadata_lba_table_size;
+extern U64 metadata_lba_lock_table_size;
+extern U64 avm_sysfs_entry_free_page_count;
+extern CHAR avm_sysfs_entry_get_list_of_volumes[DZ_SYSFS_PAGE_SIZE];
+extern CHAR avm_sysfs_entry_get_list_of_volumes_short[DZ_SYSFS_PAGE_SIZE];
+extern PPBA_BLOCK		pba_table;
+extern PHASH_BLOCK		hash_table;
+extern PLBA_BLOCK		lba_table;
+
+extern ATOMIC64			bec_pba_page_count;
+extern ATOMIC64			bec_cache_hit;
+extern ATOMIC64			bec_cache_miss;
+extern ATOMIC64			bec_cache_delete;
+extern ULONG			bec_size;
+extern INT				bec_cutoff_nodes;
+extern INT				bec_cutoff_percent;
+extern INT				dz_bec_node_mempool_count;
+extern U64			time_flush_prepare_start;
+extern U64			time_flush_start;
+extern U64			time_flush_end;
+extern U64			time_fec_write_start;
+extern U64			time_fec_write_switch;
+extern PFEC_TABLE	fec_tables_flush;
+extern ATOMIC64		fec_active_count_sequence;
+extern ATOMIC64		fec_free_count_sequence;
+extern ATOMIC64		fec_cur_flush_count;
+extern ATOMIC64		fec_flush_ops_count;
+extern ATOMIC64		fec_cur_flush_ops_count;
+extern ATOMIC64		fec_memory_reads_count;
+extern ATOMIC64		fec_forwarded_reads_count;
+extern U64			fec_active_count;
+extern ATOMIC64	dedupe_disk_reads;
+extern ATOMIC64	dedupe_disk_writes;
+extern ATOMIC64	dedupe_zeroed_out_page_reads;
+extern ATOMIC64	dedupe_cache_hits;
+extern ATOMIC64	dedupe_deleted_entries;
+extern ATOMIC64	dedupe_cur_logical_space;
+extern ATOMIC64	dedupe_cur_physical_space;
+extern ATOMIC64	dedupe_cur_duplicate_space;
+extern U64		dedupe_tot_logical_space;
+extern U64		dedupe_tot_physical_space;
+extern USHORT   dedupe_num_threads;
+extern PDZ_THREAD_POOL dedupe_thread_pool;
+extern PDZ_THREAD_POOL rdedupe_thread_pool;
+extern PDZ_THREAD_POOL wdedupe_thread_pool;
+extern PDZ_THREAD_POOL read_thread_pool;
+extern PDZ_THREAD_POOL align_read_thread_pool;
+extern PDZ_THREAD_POOL write_thread_pool; 
+extern PDZ_THREAD_POOL align_write_thread_pool; 
+extern PDZ_THREAD_POOL flush_thread_pool;
+extern PDZ_THREAD_POOL metadata_flush_thread_pool;
+extern ATOMIC64		tot_application_iocount;
+extern ATOMIC64		tot_application_iocount_reads;
+extern ATOMIC64 	tot_application_iocount_reads_partial_page;
+extern ATOMIC64 	tot_application_iocount_reads_single_page;
+extern ATOMIC64 	tot_application_iocount_reads_multi_page;
+extern ATOMIC64 	fec_iocount_reads_partial_page;
+extern ATOMIC64 	fec_iocount_reads_single_page;
+extern ATOMIC64 	fec_iocount_reads_single_aligned_page;
+extern ATOMIC64 	fec_iocount_reads_single_unaligned_page;
+extern ATOMIC64 	fec_iocount_reads_multi_page;
+extern ATOMIC64 	fec_iocount_reads_multi_aligned_page;
+extern ATOMIC64 	fec_iocount_reads_multi_unaligned_page;
+
+extern ATOMIC64 	align_iocount_disk_read;
+extern ATOMIC64 	align_iocount_disk_read_internal;
+extern ATOMIC64 	align_iocount_reads_partial_page;
+extern ATOMIC64 	align_iocount_reads_single_page;
+extern ATOMIC64 	align_iocount_reads_single_aligned_page;
+extern ATOMIC64 	align_iocount_reads_single_unaligned_page;
+extern ATOMIC64 	align_iocount_reads_multi_page;
+extern ATOMIC64 	align_iocount_reads_multi_aligned_page;
+extern ATOMIC64 	align_iocount_reads_multi_unaligned_page;
+
+extern ATOMIC64		tot_application_iocount_writes;
+extern ATOMIC64 	tot_application_iocount_writes_partial_page;
+extern ATOMIC64 	tot_application_iocount_writes_single_page;
+extern ATOMIC64 	tot_application_iocount_writes_multi_page;
+extern ATOMIC64 	fec_iocount_writes_partial_page;
+extern ATOMIC64 	fec_iocount_writes_single_page;
+extern ATOMIC64 	fec_iocount_writes_single_aligned_page;
+extern ATOMIC64 	fec_iocount_writes_single_unaligned_page;
+extern ATOMIC64 	fec_iocount_writes_multi_page;
+extern ATOMIC64 	fec_iocount_writes_multi_aligned_page;
+extern ATOMIC64 	fec_iocount_writes_multi_unaligned_page;
+
+extern ATOMIC64 	align_iocount_disk_write;
+extern ATOMIC64 	align_iocount_disk_write_internal;
+extern ATOMIC64 	align_iocount_writes_partial_page;
+extern ATOMIC64 	align_iocount_writes_single_page;
+extern ATOMIC64 	align_iocount_writes_single_aligned_page;
+extern ATOMIC64 	align_iocount_writes_single_unaligned_page;
+extern ATOMIC64 	align_iocount_writes_multi_page;
+extern ATOMIC64 	align_iocount_writes_multi_aligned_page;
+extern ATOMIC64 	align_iocount_writes_multi_unaligned_page;
+
+extern PSUPERBLOCK 	superblock;
+
+extern CHAR avm_sysfs_entry_get_sizeof_datastructures[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_sizeof_datastructures(CHAR *buf)
+{
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_sizeof_datastructures;
+	memset(avm_sysfs_entry_get_sizeof_datastructures, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+
+	ptr += sprintf(ptr, "\n====================================\n");
+	ptr += sprintf(ptr, "%s(): Basic Data Structures", __func__);
+	ptr += sprintf(ptr, "\n====================================\n");
+	ptr += sprintf(ptr, "Size of int......................= %zu\n", sizeof(int));
+	ptr += sprintf(ptr, "Size of long int.................= %zu\n", sizeof( long int));
+	ptr += sprintf(ptr, "Size of long unsigned int........= %zu\n", sizeof( long unsigned int));
+	ptr += sprintf(ptr, "Size of Long.....................= %zu\n", sizeof(long));
+	ptr += sprintf(ptr, "Size of U64......................= %zu\n", sizeof(U64));
+	ptr += sprintf(ptr, "Size of unsigned long............= %zu\n", sizeof(unsigned long));
+	ptr += sprintf(ptr, "Size of unsigned long long.......= %zu\n", sizeof(unsigned long long));
+	ptr += sprintf(ptr, "Size of signed long..............= %zu\n", sizeof(signed long));
+	ptr += sprintf(ptr, "Size of signed long long.........= %zu\n", sizeof(signed long long));
+	ptr += sprintf(ptr, "Size of long long unsigned int...= %zu\n", sizeof(long long unsigned int));
+	ptr += sprintf(ptr, "Size of long long signed int.....= %zu\n", sizeof(long long signed int));
+
+	ptr += sprintf(ptr, "\n====================================\n");
+	ptr += sprintf(ptr, "%s(): MACROs Value ", __func__);
+	ptr += sprintf(ptr, "\n====================================\n");
+	ptr += sprintf(ptr, "DATE_LENGTH.....= %d\n", DATE_LENGTH );
+	ptr += sprintf(ptr, "TIME_LENGTH.....= %d\n", TIME_LENGTH );
+	ptr += sprintf(ptr, "NAME_LENGTH.....= %d\n", NAME_LENGTH );
+	ptr += sprintf(ptr, "UUID_LENGTH.....= %d\n", UUID_LENGTH );
+	ptr += sprintf(ptr, "GUID_LENGTH.....= %d\n", GUID_LENGTH );
+	ptr += sprintf(ptr, "MAGICNO_LENGTH..= %d\n", MAGICNO_LENGTH );
+	ptr += sprintf(ptr, "BDEVNAME_SIZE...= %d\n", BDEVNAME_SIZE );
+	ptr += sprintf(ptr, "METADATA_BLOCK_SIZE...............= %d\n", METADATA_BLOCK_SIZE );
+	ptr += sprintf(ptr, "PBA_HASH_COLLISION_TAG_START......= %d\n", PBA_HASH_COLLISION_TAG_START );
+	ptr += sprintf(ptr, "DZ_FEC_CONCURRENT_READS_LIMIT.....= %d\n", DZ_FEC_CONCURRENT_READS_LIMIT );
+	ptr += sprintf(ptr, "DZ_FEC_FLUSH_INTERVAL.............= %d\n", DZ_FEC_FLUSH_INTERVAL );
+	ptr += sprintf(ptr, "SUPERBLOCK_RESERVED_SECTORS.......= %d\n", SUPERBLOCK_RESERVED_SECTORS );
+	ptr += sprintf(ptr, "SUPERBLOCK_SIZE...................= %lu\n", SUPERBLOCK_SIZE );
+	ptr += sprintf(ptr, "DZ_NUMBER_OF_WRITE_PAGES_IN_A_BIO.= %d\n", DZ_NUMBER_OF_WRITE_PAGES_IN_A_BIO );
+	ptr += sprintf(ptr, "DZ_NUMBER_OF_READ_PAGES_IN_A_BIO..= %d\n", DZ_NUMBER_OF_READ_PAGES_IN_A_BIO );
+
+	ptr += sprintf(ptr, "\n============================================\n");
+	ptr += sprintf(ptr, "%s(): Kernel Data Structures", __func__);
+	ptr += sprintf(ptr, "\n============================================\n");
+	ptr += sprintf(ptr, "Size of struct bio...............= %zu bytes\n", sizeof(struct bio));
+	ptr += sprintf(ptr, "Size of struct bio_vec...........= %zu bytes\n", sizeof(struct bio_vec));
+	ptr += sprintf(ptr, "Size of struct bio_set...........= %zu bytes\n", sizeof(struct bio_set));
+	ptr += sprintf(ptr, "Size of struct block_device......= %zu bytes\n", sizeof(struct block_device));
+	ptr += sprintf(ptr, "Size of struct list_head.........= %zu bytes\n", sizeof(struct list_head));
+	ptr += sprintf(ptr, "Size of struct dm_dev............= %zu bytes\n", sizeof(struct dm_dev));
+	ptr += sprintf(ptr, "Size of struct dm_target.........= %zu bytes\n", sizeof(struct dm_target));
+	ptr += sprintf(ptr, "Size of struct page..............= %zu bytes\n", sizeof(struct page));
+	ptr += sprintf(ptr, "Size of struct completion........= %zu bytes\n", sizeof(struct completion));
+	ptr += sprintf(ptr, "Size of struct radix_tree_root...= %zu bytes\n", sizeof(struct radix_tree_root));
+
+	ptr += sprintf(ptr, "\n===================================================\n");
+	ptr += sprintf(ptr, "%s(): ZAIDSTOR AVM Data Structures", __func__);
+	ptr += sprintf(ptr, "\n===================================================\n");
+	ptr += sprintf(ptr, "Size of struct dz_bitmap_s.............= %zu bytes\n", sizeof(struct dz_bitmap_s));
+	ptr += sprintf(ptr, "Size of struct dz_target_object_s......= %zu bytes\n", sizeof(struct dz_target_object_s));
+	ptr += sprintf(ptr, "Size of struct dz_target_device_s......= %zu bytes\n", sizeof(struct dz_target_device_s));
+	ptr += sprintf(ptr, "Size of struct dz_dedupe_volume_s......= %zu bytes\n", sizeof(struct dz_dedupe_volume_s));
+	ptr += sprintf(ptr, "Size of struct dz_object_list_s........= %zu bytes\n", sizeof(struct dz_object_list_s));
+	ptr += sprintf(ptr, "Size of struct dz_bvec_holder_s........= %zu bytes\n", sizeof(struct dz_bvec_holder_s));
+	ptr += sprintf(ptr, "Size of struct dz_iorequest_s..........= %zu bytes\n", sizeof(struct dz_iorequest_s));
+	ptr += sprintf(ptr, "Size of struct dz_dedupe_info_s........= %zu bytes\n", sizeof(struct dz_dedupe_info_s));
+	ptr += sprintf(ptr, "Size of struct dz_data_pages_s.........= %zu bytes\n", sizeof(struct dz_data_pages_s));
+	ptr += sprintf(ptr, "Size of union  dz_lba_block_s..........= %zu bytes\n", sizeof(union dz_lba_block_s));
+	ptr += sprintf(ptr, "Size of union  dz_hash_block_s.........= %zu bytes\n", sizeof(union dz_hash_block_s));
+	ptr += sprintf(ptr, "Size of union  dz_pba_block_s..........= %zu bytes\n", sizeof(union dz_pba_block_s));
+	ptr += sprintf(ptr, "Size of union  dz_fec_data_write_s.....= %zu bytes\n", sizeof(union dz_fec_data_write_s));
+	ptr += sprintf(ptr, "Size of struct dz_fec_table_s..........= %zu bytes\n", sizeof(struct dz_fec_table_s));
+	ptr += sprintf(ptr, "Size of struct dz_completion_s.........= %zu bytes\n", sizeof(struct dz_completion_s));
+	ptr += sprintf(ptr, "Size of struct dz_ddvol_lba_block_s....= %zu bytes\n", sizeof(struct dz_ddvol_lba_block_s));
+	ptr += sprintf(ptr, "Size of struct dz_bec_request_s........= %zu bytes\n", sizeof(struct dz_bec_request_s));
+	ptr += sprintf(ptr, "Size of struct dz_bec_node_s...........= %zu bytes\n", sizeof(struct dz_bec_node_s));
+	ptr += sprintf(ptr, "Size of struct dz_hash_s...............= %zu bytes\n", sizeof(struct dz_hash_s));
+	ptr += sprintf(ptr, "Size of struct dz_superblock_s.........= %zu bytes\n", sizeof(struct dz_superblock_s));
+	ptr += sprintf(ptr, "Size of struct dz_job_s................= %zu bytes\n", sizeof(struct dz_job_s));
+	ptr += sprintf(ptr, "Size of struct dz_thread_s.............= %zu bytes\n", sizeof(struct dz_thread_s));
+	ptr += sprintf(ptr, "Size of struct dz_thread_pool_s........= %zu bytes\n", sizeof(struct dz_thread_pool_s));
+	ptr += sprintf(ptr, "Size of struct dz_metadata_lock_s......= %zu bytes\n", sizeof(struct dz_metadata_lock_s));
+	ptr += sprintf(ptr, "Size of struct dz_metadata_disk_block_s= %zu bytes\n", sizeof(struct dz_metadata_disk_block_s));
+	ptr += sprintf(ptr, "\n===================================================\n");
+	ptr += sprintf(ptr, "    \n");
+
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_align_counters[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_align_counters(CHAR *buf)
+{
+	INT count = 0;
+	UINT rpending_iorequests;
+	UINT rpending_threads;
+	UINT rpending_jobs;
+
+	UINT wpending_iorequests;
+	UINT wpending_threads;
+	UINT wpending_jobs;
+
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_align_counters;
+	memset(avm_sysfs_entry_get_align_counters, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "==============================================\n");
+	ptr += sprintf(ptr, "ALIGNMENT ENGINE COUNTERS\n");
+	ptr += sprintf(ptr, "==============================================\n");
+	if (!superblock) {
+		ptr += sprintf(ptr, "Superblock is NULL");
+		return 0;
+	}
+
+	if (dz_switch_alignment_engine == DZ_DISABLED) {
+		ptr += sprintf(ptr, "ALIGNMENT ENGINE DISABLED");
+		return 0;
+	}
+
+	rpending_iorequests	=  atomic_read(&align_read_thread_pool->ioq_num_ios);
+	rpending_threads	=  atomic_read(&align_read_thread_pool->num_active_threads);
+	rpending_jobs		=  atomic_read(&align_read_thread_pool->num_jobs);
+
+	wpending_iorequests	=  atomic_read(&align_write_thread_pool->ioq_num_ios);
+	wpending_threads	=  atomic_read(&align_write_thread_pool->num_active_threads);
+	wpending_jobs		=  atomic_read(&align_write_thread_pool->num_jobs);
+
+	//Note: Value is NOT lock safe
+	count = sprintf(ptr,
+	"ALIGN Read Thread Pool Name....................= %s\n"
+	"ALIGN No. of Read Threads......................= %u\n"
+	"ALIGN Pending Read IO Requests.................= %u\n"
+	"ALIGN Pending Read IO Threads..................= %u\n"
+	"ALIGN Pending Read Jobs........................= %u\n"
+	"ALIGN Read IO quiescing........................= %d\n"
+	"ALIGN Read IO queue Opened.....................= %d\n"
+	"ALIGN Write Thread Pool Name...................= %s\n"
+	"ALIGN No. of Write Threads.....................= %u\n"
+	"ALIGN Pending Write IO Requests................= %u\n"
+	"ALIGN Pending Write IO Threads.................= %u\n"
+	"ALIGN Pending Write Jobs.......................= %u\n"
+	"ALIGN Write IO quiescing.......................= %d\n"
+	"ALIGN Write IO queue Opened....................= %d\n"
+	"ALIGN Current Time.............................= %lli\n"
+	"ALIGN Diff wrt Current Time(secs)..............= %lli\n"
+	"ALIGN Diff wrt Final(secs).....................= %lli\n"
+	"ALIGN Application IO Count.....................= %lli\n"
+	"ALIGN Application IO Count READS...............= %lli\n"
+	"ALIGN Application IO Count READS Partial Page..= %lli\n"
+	"ALIGN Application IO Count READS Single Page...= %lli\n"
+	"ALIGN Application IO Count READS Multi Page....= %lli\n"
+	"ALIGN Application IO Count WRITES..............= %lli\n"
+	"ALIGN Application IO Count WRITES Partial Page.= %lli\n"
+	"ALIGN Application IO Count WRITES Single Page..= %lli\n"
+	"ALIGN Application IO Count WRITES Multi Page...= %lli\n"
+	"ALIGN IO Count READS Partial Page..............= %lli\n"
+	"ALIGN IO Count READS Single Page...............= %lli\n"
+	"ALIGN IO Count READS Single Aligned Page.......= %lli\n"
+	"ALIGN IO Count READS Single Unaligned Page.....= %lli\n"
+	"ALIGN IO Count READS Multi Page................= %lli\n"
+	"ALIGN IO Count READS Multi Aligned Page........= %lli\n"
+	"ALIGN IO Count READS Multi Unaligned Page......= %lli\n"
+	"ALIGN IO Count READS Disk Reads Direct.........= %lli\n"
+	"ALIGN IO Count READS Disk Reads Indirect.......= %lli\n"
+	"ALIGN IO Count WRITES Partial Page.............= %lli\n"
+	"ALIGN IO Count WRITES Single Page..............= %lli\n"
+	"ALIGN IO Count WRITES Single Aligned Page......= %lli\n"
+	"ALIGN IO Count WRITES Single Unaligned Page....= %lli\n"
+	"ALIGN IO Count WRITES Multi Page...............= %lli\n"
+	"ALIGN IO Count WRITES Multi Aligned Page.......= %lli\n"
+	"ALIGN IO Count WRITES Multi Unaligned Page.....= %lli\n"
+	"ALIGN IO Count WRITES Disk Writes Direct.......= %lli\n"
+	"ALIGN IO Count WRITES Disk Writes InDirect.....= %lli\n",
+	//"Flush Completion Rate(psec) = %lli\n",
+	align_read_thread_pool->name,
+	align_read_thread_pool->num_threads,
+	rpending_iorequests,
+	rpending_threads,
+	rpending_jobs,
+	align_read_thread_pool->quiesce,
+	align_read_thread_pool->ioq_open,
+
+	write_thread_pool->name,
+	write_thread_pool->num_threads,
+	wpending_iorequests,
+	wpending_threads,
+	wpending_jobs,
+	align_write_thread_pool->quiesce,
+	align_write_thread_pool->ioq_open,
+
+	(U64)GET_CURRENT_TIME(),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_flush_start, GET_CURRENT_TIME())/1000),
+	(U64)((GET_TIME_DIFF_IN_SECONDS(time_flush_start, time_flush_end))/1000),
+	(U64)READ_COUNTER(tot_application_iocount),
+	(U64)READ_COUNTER(tot_application_iocount_reads),
+	(U64)READ_COUNTER(tot_application_iocount_reads_partial_page),
+	(U64)READ_COUNTER(tot_application_iocount_reads_single_page),
+	(U64)READ_COUNTER(tot_application_iocount_reads_multi_page),
+	(U64)READ_COUNTER(tot_application_iocount_writes),
+	(U64)READ_COUNTER(tot_application_iocount_writes_partial_page),
+	(U64)READ_COUNTER(tot_application_iocount_writes_single_page),
+	(U64)READ_COUNTER(tot_application_iocount_writes_multi_page),
+	(U64)READ_COUNTER(align_iocount_reads_partial_page),
+	(U64)READ_COUNTER(align_iocount_reads_single_page),
+	(U64)READ_COUNTER(align_iocount_reads_single_aligned_page),
+	(U64)READ_COUNTER(align_iocount_reads_single_unaligned_page),
+	(U64)READ_COUNTER(align_iocount_reads_multi_page),
+	(U64)READ_COUNTER(align_iocount_reads_multi_aligned_page),
+	(U64)READ_COUNTER(align_iocount_reads_multi_unaligned_page),
+	(U64)READ_COUNTER(align_iocount_disk_read),
+	(U64)READ_COUNTER(align_iocount_disk_read_internal),
+	(U64)READ_COUNTER(align_iocount_writes_partial_page),
+	(U64)READ_COUNTER(align_iocount_writes_single_page),
+	(U64)READ_COUNTER(align_iocount_writes_single_aligned_page),
+	(U64)READ_COUNTER(align_iocount_writes_single_unaligned_page),
+	(U64)READ_COUNTER(align_iocount_writes_multi_page),
+	(U64)READ_COUNTER(align_iocount_writes_multi_aligned_page),
+	(U64)READ_COUNTER(align_iocount_writes_multi_unaligned_page),
+	(U64)READ_COUNTER(align_iocount_disk_write),
+	(U64)READ_COUNTER(align_iocount_disk_write_internal)
+	);
+	/*
+	(U64) ((READ_COUNTER(fec_cur_flush_count)) / 
+	(GET_TIME_DIFF_IN_SECONDS(time_flush_start, GET_CURRENT_TIME())/1000)));
+	*/
+
+	//LOGR("<------------ FEC Show ----------->\n");
+	//LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	//ptr += sprintf(ptr, "==============================================\n");
+
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_fec_counters[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_fec_counters(CHAR *buf)
+{
+	INT count = 0;
+	UINT rpending_iorequests;
+	UINT rpending_threads;
+	UINT rpending_jobs;
+
+	UINT wpending_iorequests;
+	UINT wpending_threads;
+	UINT wpending_jobs;
+
+	UINT fpending_iorequests;
+	UINT fpending_threads;
+	UINT fpending_jobs;
+
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_fec_counters;
+	memset(avm_sysfs_entry_get_fec_counters, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "==============================================\n");
+	ptr += sprintf(ptr, "FEC ENGINE COUNTERS\n");
+	ptr += sprintf(ptr, "==============================================\n");
+	if (!superblock) {
+		ptr += sprintf(ptr, "Superblock is NULL");
+		return 0;
+	}
+
+	if (dz_switch_fec_engine == DZ_DISABLED) {
+		ptr += sprintf(ptr, "FEC ENGINE DISABLED");
+		return 0;
+	}
+
+	rpending_iorequests	=  atomic_read(&read_thread_pool->ioq_num_ios);
+	rpending_threads	=  atomic_read(&read_thread_pool->num_active_threads);
+	rpending_jobs		=  atomic_read(&read_thread_pool->num_jobs);
+
+	wpending_iorequests	=  atomic_read(&write_thread_pool->ioq_num_ios);
+	wpending_threads	=  atomic_read(&write_thread_pool->num_active_threads);
+	wpending_jobs		=  atomic_read(&write_thread_pool->num_jobs);
+
+	fpending_iorequests	=  atomic_read(&flush_thread_pool->ioq_num_ios);
+	fpending_threads	=  atomic_read(&flush_thread_pool->num_active_threads);
+	fpending_jobs		=  atomic_read(&flush_thread_pool->num_jobs);
+
+	//Note: Value is NOT lock safe
+	count = sprintf(ptr,
+	"FEC Active Count Sequence....................= %lli\n"
+	"FEC Free   Count Sequence....................= %lli\n"
+	"FEC Active Count.............................= %lli\n"
+	"FEC Flush Ops Count..........................= %lli\n"
+	"FEC Current Flush Ops Count..................= %lli\n"
+	"FEC Memory Reads Count.......................= %lli\n"
+	"FEC Forwarded Reads Count....................= %lli\n"
+	"FEC Write Start..............................= %lli\n"
+	"FEC Write Switch.............................= %lli\n"
+	"FEC Current Time.............................= %lli\n"
+	"FEC Diff wrt Current Time(secs)..............= %lli\n"
+	"FEC Diff wrt Final(secs).....................= %lli\n"
+	"FEC Total Flush Count Pending................= %lli\n"
+	"FEC Current Flush Count......................= %lli\n"
+	"FEC Flush Prepare Start......................= %lli\n"
+	"FEC Flush Start Time.........................= %lli\n"
+	"FEC Flush End Time...........................= %lli\n"
+	"FEC Read Thread Pool Name....................= %s\n"
+	"FEC No. of Read Threads......................= %u\n"
+	"FEC Pending Read IO Requests.................= %u\n"
+	"FEC Pending Read IO Threads..................= %u\n"
+	"FEC Pending Read Jobs........................= %u\n"
+	"FEC Read IO quiescing........................= %d\n"
+	"FEC Read IO queue Opened.....................= %d\n"
+	"FEC Write Thread Pool Name...................= %s\n"
+	"FEC No. of Write Threads.....................= %u\n"
+	"FEC Pending Write IO Requests................= %u\n"
+	"FEC Pending Write IO Threads.................= %u\n"
+	"FEC Pending Write Jobs.......................= %u\n"
+	"FEC Write IO quiescing.......................= %d\n"
+	"FEC Write IO queue Opened....................= %d\n"
+	"FEC Flush Thread Pool Name...................= %s\n"
+	"FEC No. of Flush Threads.....................= %u\n"
+	"FEC Pending Flush IO Requests................= %u\n"
+	"FEC Pending Flush IO Threads.................= %u\n"
+	"FEC Pending Flush Jobs.......................= %u\n"
+	"FEC Flush IO quiescing.......................= %d\n"
+	"FEC Flush IO queue Opened....................= %d\n"
+	"FEC Current Time.............................= %lli\n"
+	"FEC Diff wrt Current Time(secs)..............= %lli\n"
+	"FEC Diff wrt Final(secs).....................= %lli\n"
+	"FEC Application IO Count.....................= %lli\n"
+	"FEC Application IO Count READS...............= %lli\n"
+	"FEC Application IO Count READS Partial Page..= %lli\n"
+	"FEC Application IO Count READS Single Page...= %lli\n"
+	"FEC Application IO Count READS Multi Page....= %lli\n"
+	"FEC Application IO Count WRITES..............= %lli\n"
+	"FEC Application IO Count WRITES Partial Page.= %lli\n"
+	"FEC Application IO Count WRITES Single Page..= %lli\n"
+	"FEC Application IO Count WRITES Multi Page...= %lli\n"
+	"FEC IO Count READS Partial Page..............= %lli\n"
+	"FEC IO Count READS Single Page...............= %lli\n"
+	"FEC IO Count READS Single Aligned Page.......= %lli\n"
+	"FEC IO Count READS Single Unaligned Page.....= %lli\n"
+	"FEC IO Count READS Multi Page................= %lli\n"
+	"FEC IO Count READS Multi Aligned Page........= %lli\n"
+	"FEC IO Count READS Multi Unaligned Page......= %lli\n"
+	"FEC IO Count WRITES Partial Page.............= %lli\n"
+	"FEC IO Count WRITES Single Page..............= %lli\n"
+	"FEC IO Count WRITES Single Aligned Page......= %lli\n"
+	"FEC IO Count WRITES Single Unaligned Page....= %lli\n"
+	"FEC IO Count WRITES Multi Page...............= %lli\n"
+	"FEC IO Count WRITES Multi Aligned Page.......= %lli\n"
+	"FEC IO Count WRITES Multi Unaligned Page.....= %lli\n",
+	//"Flush Completion Rate(psec) = %lli\n",
+	(U64)READ_COUNTER(fec_active_count_sequence),
+	(U64)READ_COUNTER(fec_free_count_sequence),
+	fec_active_count,
+	(U64)READ_COUNTER(fec_flush_ops_count),
+	(U64)READ_COUNTER(fec_cur_flush_ops_count),
+	(U64)READ_COUNTER(fec_memory_reads_count),
+	(U64)READ_COUNTER(fec_forwarded_reads_count),
+	time_fec_write_start,
+	time_fec_write_switch,
+	GET_CURRENT_TIME(),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_fec_write_start, GET_CURRENT_TIME())/1000),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_fec_write_start, time_fec_write_switch)/1000),
+	(U64)fec_tables_flush->total_flush_cnt,
+	(U64)READ_COUNTER(fec_cur_flush_count),
+	(U64)time_flush_prepare_start,
+	(U64)time_flush_start,
+	(U64)time_flush_end,
+	read_thread_pool->name,
+	read_thread_pool->num_threads,
+	rpending_iorequests,
+	rpending_threads,
+	rpending_jobs,
+	read_thread_pool->quiesce,
+	read_thread_pool->ioq_open,
+
+	write_thread_pool->name,
+	write_thread_pool->num_threads,
+	wpending_iorequests,
+	wpending_threads,
+	wpending_jobs,
+	write_thread_pool->quiesce,
+	write_thread_pool->ioq_open,
+
+	flush_thread_pool->name,
+	flush_thread_pool->num_threads,
+	fpending_iorequests,
+	fpending_threads,
+	fpending_jobs,
+	flush_thread_pool->quiesce,
+	flush_thread_pool->ioq_open,
+	(U64)GET_CURRENT_TIME(),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_flush_start, GET_CURRENT_TIME())/1000),
+	(U64)((GET_TIME_DIFF_IN_SECONDS(time_flush_start, time_flush_end))/1000),
+	(U64)READ_COUNTER(tot_application_iocount),
+	(U64)READ_COUNTER(tot_application_iocount_reads),
+	(U64)READ_COUNTER(tot_application_iocount_reads_partial_page),
+	(U64)READ_COUNTER(tot_application_iocount_reads_single_page),
+	(U64)READ_COUNTER(tot_application_iocount_reads_multi_page),
+	(U64)READ_COUNTER(tot_application_iocount_writes),
+	(U64)READ_COUNTER(tot_application_iocount_writes_partial_page),
+	(U64)READ_COUNTER(tot_application_iocount_writes_single_page),
+	(U64)READ_COUNTER(tot_application_iocount_writes_multi_page),
+	(U64)READ_COUNTER(fec_iocount_reads_partial_page),
+	(U64)READ_COUNTER(fec_iocount_reads_single_page),
+	(U64)READ_COUNTER(fec_iocount_reads_single_aligned_page),
+	(U64)READ_COUNTER(fec_iocount_reads_single_unaligned_page),
+	(U64)READ_COUNTER(fec_iocount_reads_multi_page),
+	(U64)READ_COUNTER(fec_iocount_reads_multi_aligned_page),
+	(U64)READ_COUNTER(fec_iocount_reads_multi_unaligned_page),
+	(U64)READ_COUNTER(fec_iocount_writes_partial_page),
+	(U64)READ_COUNTER(fec_iocount_writes_single_page),
+	(U64)READ_COUNTER(fec_iocount_writes_single_aligned_page),
+	(U64)READ_COUNTER(fec_iocount_writes_single_unaligned_page),
+	(U64)READ_COUNTER(fec_iocount_writes_multi_page),
+	(U64)READ_COUNTER(fec_iocount_writes_multi_aligned_page),
+	(U64)READ_COUNTER(fec_iocount_writes_multi_unaligned_page)
+	);
+	/*
+	(U64) ((READ_COUNTER(fec_cur_flush_count)) / 
+	(GET_TIME_DIFF_IN_SECONDS(time_flush_start, GET_CURRENT_TIME())/1000)));
+	*/
+
+	//LOGR("<------------ FEC Show ----------->\n");
+	//LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	//ptr += sprintf(ptr, "==============================================\n");
+
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_dedupe_counters[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_dedupe_counters(CHAR *buf)
+{
+	INT count = 0;
+	UINT pending_iorequests;
+	UINT pending_threads;
+	UINT pending_jobs;
+
+	UINT pending_riorequests;
+	UINT pending_rthreads;
+	UINT pending_rjobs;
+
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_dedupe_counters;
+	memset(avm_sysfs_entry_get_dedupe_counters, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "==============================================\n");
+	ptr += sprintf(ptr, "DEDUPE ENGINE COUNTERS\n");
+	ptr += sprintf(ptr, "==============================================\n");
+	if (!superblock) {
+		ptr += sprintf(ptr, "Superblock is NULL");
+		return 0;
+	}
+
+	if (dz_switch_dedupe_engine == DZ_DISABLED) {
+		ptr += sprintf(ptr, "DEDUPE ENGINE DISABLED");
+		return 0;
+	}
+
+	pending_iorequests 	=  atomic_read(&wdedupe_thread_pool->ioq_num_ios);
+	pending_threads		=  atomic_read(&wdedupe_thread_pool->num_active_threads);
+	pending_jobs		=  atomic_read(&wdedupe_thread_pool->num_jobs);
+
+	pending_riorequests	=  atomic_read(&rdedupe_thread_pool->ioq_num_ios);
+	pending_rthreads	=  atomic_read(&rdedupe_thread_pool->num_active_threads);
+	pending_rjobs		=  atomic_read(&rdedupe_thread_pool->num_jobs);
+
+	//Note: Value is NOT lock safe
+	count = sprintf(ptr,
+	"DEDUPE Total Logical  Space..................= %lli\n"
+	"DEDUPE Total Physical Space..................= %lli\n"
+	"DEDUPE Current Logical  Space................= %lli\n"
+	"DEDUPE Current Physical Space................= %lli\n"
+	"DEDUPE Current Duplicate Space...............= %lli\n"
+	"DEDUPE Deleted Entries.......................= %lli\n"
+	"DEDUPE Cache hits............................= %lli\n"
+	"DEDUPE Disk Reads............................= %lli\n"
+	"DEDUPE Disk Writes...........................= %lli\n"
+	"DEDUPE Zeroed Out Page Reads.................= %lli\n"
+	"DEDUPE No. of Read Threads...................= %u\n"
+	"DEDUPE Read Thread Pool Name.................= %s\n"
+	"DEDUPE No. of Write Threads..................= %u\n"
+	"DEDUPE Write Thread Pool Name................= %s\n"
+	"DEDUPE Pending READ IO Requests..............= %u\n"
+	"DEDUPE Pending READ Threads..................= %u\n"
+	"DEDUPE Pending READ Jobs.....................= %u\n"
+	"DEDUPE Pending WRITE IO Requests.............= %u\n"
+	"DEDUPE Pending WRITE Threads.................= %u\n"
+	"DEDUPE Pending WRITE Jobs....................= %u\n"
+	"DEDUPE WRITE IO quiescing....................= %d\n"
+	"DEDUPE WRITE IO queue Opened.................= %d\n"
+	"DEDUPE Current Time..........................= %lli\n",
+	(U64)dedupe_tot_logical_space,
+	(U64)dedupe_tot_physical_space,
+	(U64)READ_COUNTER(dedupe_cur_logical_space),
+	(U64)READ_COUNTER(dedupe_cur_physical_space),
+	(U64)READ_COUNTER(dedupe_cur_duplicate_space),
+	(U64)READ_COUNTER(dedupe_deleted_entries),
+	(U64)READ_COUNTER(dedupe_cache_hits),
+	(U64)READ_COUNTER(dedupe_disk_reads),
+	(U64)READ_COUNTER(dedupe_disk_writes),
+	(U64)READ_COUNTER(dedupe_zeroed_out_page_reads),
+	rdedupe_thread_pool->num_threads,
+	rdedupe_thread_pool->name,
+	wdedupe_thread_pool->num_threads,
+	wdedupe_thread_pool->name,
+	pending_riorequests,
+	pending_rthreads,
+	pending_rjobs,
+	pending_iorequests,
+	pending_threads,
+	pending_jobs,
+	wdedupe_thread_pool->quiesce,
+	wdedupe_thread_pool->ioq_open,
+	(U64)(GET_CURRENT_TIME()));
+
+	ptr += count;
+	ptr += sprintf(ptr, "DEDUPE LBA Table Size........................= %llu (4K size blocks) ", lba_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (lba_table_size * LBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (lba_table_size * LBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (lba_table_size * LBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", lba_table_size * LBA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "LBA Bitmap: lba_table_size...................= %lli\n", lba_table_size);
+	ptr += sprintf(ptr, "LBA Bitmap: number_of_longs_for_lba..........= %u\n", number_of_longs_for_lba);
+	ptr += sprintf(ptr, "LBA Bitmap: Bitmap Size......................= %lu\n", number_of_longs_for_lba * sizeof(long));
+
+
+	ptr += sprintf(ptr, "DEDUPE HASH Table Size.......................= %llu (4K size blocks) ", hash_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (hash_table_size * HBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (hash_table_size * HBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (hash_table_size * HBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", hash_table_size * HBA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "DEDUPE PBA Table Size........................= %llu (4K size blocks) ", pba_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (pba_table_size * PBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (pba_table_size * PBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (pba_table_size * PBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", pba_table_size * PBA_BLOCK_SIZE);
+	ptr += sprintf(ptr, "PBA Bitmap: pba_table_size...................= %lli\n", pba_table_size);
+	ptr += sprintf(ptr, "PBA Bitmap: number_of_longs_for_pba..........= %u\n", number_of_longs_for_pba);
+	ptr += sprintf(ptr, "PBA Bitmap: Bitmap Size......................= %lu\n", number_of_longs_for_pba * sizeof(long));
+    ptr += sprintf(ptr, "Garbage PBA Bitmap: pba_table_size...........= %lli\n", pba_table_size);
+    ptr += sprintf(ptr, "Garbage PBA Bitmap: number_of_longs_for_gpba.= %u\n", number_of_longs_for_gpba);
+    ptr += sprintf(ptr, "Garbage PBA Bitmap: Bitmap Size..............= %lu\n", number_of_longs_for_gpba * sizeof(long));
+	//LOGD("Buffer Bytes used           = %d\n", count);
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_superblock[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_superblock(CHAR *buf)
+{
+	INT count = 0;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_superblock;
+	memset(avm_sysfs_entry_get_superblock, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "===================================================================\n");
+	ptr += sprintf(ptr, "SUPERBLOCK STRUCTURE\n");
+	ptr += sprintf(ptr, "===================================================================\n");
+
+	if (!superblock) {
+		ptr += sprintf(ptr, "Superblock is NULL\n");
+		return 0;
+	}
+
+	count = sprintf(ptr,
+	"                     version = %s\n"
+	"        metadata_dev_magicno = %s\n"
+	"           metadata_dev_name = %s\n"
+	"           metadata_dev_uuid = %s\n"
+	"             metadata_offset = %llu\n"
+	"            data_dev_magicno = %s\n"
+	"               data_dev_name = %s\n"
+	"               data_dev_uuid = %s\n"
+	"              lba_table_size = %llu\n"
+	"              lba_block_size = %d bytes\n"
+	"     metadata_lba_table_size = %llu\n"
+	"     metadata_lba_block_size = %d bytes\n"
+	"metadata_lba_lock_table_size = %llu\n"
+	"metadata_lba_lock_block_size = %d bytes\n"
+	"              pba_table_size = %llu\n"
+	"              pba_block_size = %d bytes\n"
+	"             hash_table_size = %llu\n",
+	superblock->version,
+	superblock->metadata_dev_magicno,
+	superblock->metadata_dev_name,
+	superblock->metadata_dev_uuid,
+	superblock->metadata_offset,
+	superblock->data_dev_magicno,
+	superblock->data_dev_name,
+	superblock->data_dev_uuid,
+	superblock->lba_table_size,
+	superblock->lba_block_size,
+	superblock->metadata_lba_table_size,
+	superblock->metadata_lba_block_size,
+	superblock->metadata_lba_lock_table_size,
+	superblock->metadata_lba_lock_block_size,
+	superblock->pba_table_size,
+	superblock->pba_block_size,
+	superblock->hash_table_size
+	);
+
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_metadata_counters[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_metadata_counters(CHAR *buf)
+{
+	INT count = 0;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_metadata_counters;
+	memset(avm_sysfs_entry_get_metadata_counters, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "===================================\n");
+	ptr += sprintf(ptr, "METADATA ENGINE (MDE) COUNTERS\n");
+	ptr += sprintf(ptr, "===================================\n");
+
+
+	if (!superblock) {
+		ptr += sprintf(ptr, "Superblock is NULL");
+		return 0;
+	}
+
+	//Note: Value is NOT lock safe
+	count = sprintf(ptr,
+	"MDE No. of Threads................= %u\n"
+	"MDE Thread Pool Name..............= %s\n"
+	"MDE Flush Interval (In Seconds)...= %lu\n",
+	metadata_flush_thread_pool->num_threads,
+	metadata_flush_thread_pool->name,
+	(ULONG)metadata_flush_interval
+	);
+
+	ptr += count;
+	ptr += sprintf(ptr, "MDE LBA Table Size................= %llu ", metadata_lba_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (metadata_lba_table_size * METADATA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (metadata_lba_table_size * METADATA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (metadata_lba_table_size * METADATA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", metadata_lba_table_size * METADATA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "MDE LBA Lock Table Size...........= %llu ", metadata_lba_lock_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (metadata_lba_lock_table_size * sizeof(MD_LOCK)/GB));
+	ptr += sprintf(ptr, "%llu MB ", (metadata_lba_lock_table_size * sizeof(MD_LOCK)/MB));
+	ptr += sprintf(ptr, "%llu KB ", (metadata_lba_lock_table_size * sizeof(MD_LOCK)/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", metadata_lba_lock_table_size * sizeof(MD_LOCK));
+	//LOGR("<------------ BEC Show ----------->\n");
+	//LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	//return count;
+	return 0;
+}
+
+
+
+extern CHAR avm_sysfs_entry_get_bec_counters[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_bec_counters(CHAR *buf)
+{
+	INT count = 0;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_bec_counters;
+	memset(avm_sysfs_entry_get_bec_counters, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "=================================\n");
+	ptr += sprintf(ptr, "BEC ENGINE COUNTERS\n");
+	ptr += sprintf(ptr, "=================================\n");
+	if (!superblock) {
+		ptr += sprintf(ptr, "Superblock is NULL");
+		return 0;
+	}
+
+	if (dz_switch_bec_engine == DZ_DISABLED) {
+		ptr += sprintf(ptr, "BEC ENGINE DISABLED");
+		return 0;
+	}
+
+	//Note: Value is NOT lock safe
+	count = sprintf(ptr,
+	"BEC bec_pba_page_count..........= %lli\n"
+	"BEC bec_cache_hit...............= %lli\n"
+	"BEC bec_cache_miss..............= %lli\n"
+	"BEC bec_cache_delete............= %lli\n"
+	"BEC bec_size....................= %lli\n"
+	"BEC bec_cutoff_nodes............= %lli\n"
+	"BEC bec_cutoff_percent..........= %lli\n"
+	"BEC bec_node_mempool_count......= %lli\n",
+	(U64)READ_COUNTER(bec_pba_page_count),
+	(U64)ATOMIC64_READ(bec_cache_hit),
+	(U64)ATOMIC64_READ(bec_cache_miss),
+	(U64)ATOMIC64_READ(bec_cache_delete),
+	(U64)bec_size,
+	(U64)bec_cutoff_nodes,
+	(U64)bec_cutoff_percent,
+	(U64)dz_bec_node_mempool_count);
+
+	//LOGR("<------------ BEC Show ----------->\n");
+	//LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	//return count;
+	return 0;
+}
+
+
+extern CHAR avm_sysfs_entry_get_all_counters[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_all_counters(CHAR *buf)
+{
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_all_counters;
+	memset(avm_sysfs_entry_get_all_counters, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "ALL ENGINE COUNTERS\n");
+	ptr += sprintf(ptr, "BEC ENGINE COUNTERS\n");
+	ptr += sprintf(ptr, "bec_pba_page_count     = %lli\n", (U64)READ_COUNTER(bec_pba_page_count));
+	ptr += sprintf(ptr, "bec_cache_hit          = %lli\n", (U64)ATOMIC64_READ(bec_cache_hit));
+	ptr += sprintf(ptr, "bec_cache_miss         = %lli\n", (U64)ATOMIC64_READ(bec_cache_miss));
+	ptr += sprintf(ptr, "bec_cache_delete       = %lli\n", (U64)ATOMIC64_READ(bec_cache_delete));
+	ptr += sprintf(ptr, "bec_size               = %lli\n", (U64)bec_size);
+	ptr += sprintf(ptr, "bec_cutoff_nodes       = %lli\n", (U64)bec_cutoff_nodes);
+	ptr += sprintf(ptr, "bec_cutoff_percent     = %lli\n", (U64)bec_cutoff_percent);
+	ptr += sprintf(ptr, "bec_node_mempool_count = %lli\n", (U64)dz_bec_node_mempool_count);
+	ptr += sprintf(ptr, "AISA ZaidStor Minor   = %d\n", DZ_AISA_VERSION_MINOR);
+	ptr += sprintf(ptr, "AISA ZaidStor Patch   = %d\n", DZ_AISA_VERSION_PATCH);
+	ptr += sprintf(ptr, "AISA ZaidStor Release = %s\n", DZ_AISA_VERSION_RELEASE);
+	ptr += sprintf(ptr, "LINUX_VERSION_CODE    = %d\n", LINUX_VERSION_CODE);
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_memory_info[DZ_SYSFS_PAGE_SIZE];
+//extern U64 fec_engine_memory_usage;
+extern U64 bec_engine_memory_usage;
+extern U64 dedupe_engine_memory_usage;
+extern U64 infra_engine_memory_usage;
+extern U64 md_engine_memory_usage;
+INT avm_get_memory_info(CHAR *buf)
+{
+	U64 count = 0;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_memory_info;
+	memset(avm_sysfs_entry_get_memory_info, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "======================================================\n");
+	ptr += sprintf(ptr, "AVM Memory Consumption in Kernel during Initialization\n");
+	ptr += sprintf(ptr, "======================================================\n");
+	count =		BASE_COUNTER_ATOMIC64_READ(dz_total_memory_consumed_by_all_pools);
+	ptr += sprintf(ptr, "Total Memory Consumed................................= %llu MB %llu KB %llu (bytes)\n",
+			count/MB,
+			count/KB,
+			count);
+	ptr += sprintf(ptr, " |_ Total Memory Consumed by Infra Engine............= %llu MB %llu KB %llu (bytes)\n",
+			BASE_COUNTER_U64_GET(infra_engine_memory_usage)/MB,
+			BASE_COUNTER_U64_GET(infra_engine_memory_usage)/KB,
+			BASE_COUNTER_U64_GET(infra_engine_memory_usage));
+	ptr += sprintf(ptr, " |_ Total Memory Consumed by Dedupe Engine...........= %llu MB %llu KB %llu (bytes)\n",
+			DDE_COUNTER_U64_GET(dedupe_engine_memory_usage)/MB,
+			DDE_COUNTER_U64_GET(dedupe_engine_memory_usage)/KB,
+			DDE_COUNTER_U64_GET(dedupe_engine_memory_usage));
+	ptr += sprintf(ptr, " |_ Total Memory Consumed by FEC Engine..............= %llu MB %llu KB %llu (bytes)\n",
+			FEC_COUNTER_U64_GET(fec_engine_memory_usage)/MB,
+			FEC_COUNTER_U64_GET(fec_engine_memory_usage)/KB,
+			FEC_COUNTER_U64_GET(fec_engine_memory_usage));
+	ptr += sprintf(ptr, " |_ Total Memory Consumed by BEC Engine..............= %llu MB %llu KB %llu (bytes)\n",
+			BEC_COUNTER_U64_GET(bec_engine_memory_usage)/MB,
+			BEC_COUNTER_U64_GET(bec_engine_memory_usage)/KB,
+			BEC_COUNTER_U64_GET(bec_engine_memory_usage));
+	ptr += sprintf(ptr, " |_ Total Memory Consumed by MD Engine...............= %llu MB %llu KB %llu (bytes)\n",
+			BASE_COUNTER_U64_GET(md_engine_memory_usage)/MB,
+			BASE_COUNTER_U64_GET(md_engine_memory_usage)/KB,
+			BASE_COUNTER_U64_GET(md_engine_memory_usage));
+
+	ptr += sprintf(ptr, "dz_iorequest_alloc_cnt...............................= %ld\n",
+			BASE_COUNTER_ATOMIC64_READ(dz_iorequest_alloc_cnt));
+
+	ptr += sprintf(ptr, "dz_iorequest_free_cnt................................= %ld\n",
+			BASE_COUNTER_ATOMIC64_READ(dz_iorequest_free_cnt));
+
+	ptr += sprintf(ptr, "dz_iorequest_alloc_cnt - dz_iorequest_free_cnt.......= %ld\n", 
+			(BASE_COUNTER_ATOMIC64_READ(dz_iorequest_alloc_cnt) - BASE_COUNTER_ATOMIC64_READ(dz_iorequest_free_cnt)));
+
+	ptr += sprintf(ptr, "dz_page_alloc_cnt....................................= %ld\n",
+			BASE_COUNTER_ATOMIC64_READ(dz_page_alloc_cnt));
+
+	ptr += sprintf(ptr, "dz_page_free_cnt.....................................= %ld\n",
+			BASE_COUNTER_ATOMIC64_READ(dz_page_free_cnt));
+
+	ptr += sprintf(ptr, "dz_page_alloc_cnt - dz_page_free_cnt.................= %ld\n", 
+			(BASE_COUNTER_ATOMIC64_READ(dz_page_alloc_cnt) - BASE_COUNTER_ATOMIC64_READ(dz_page_free_cnt)));
+
+	ptr += sprintf(ptr, "bec_node_alloc_cnt...................................= %ld\n",
+			BEC_COUNTER_ATOMIC64_READ(bec_node_alloc_cnt));
+
+	ptr += sprintf(ptr, "bec_node_free_cnt....................................= %ld\n",
+			BEC_COUNTER_ATOMIC64_READ(bec_node_free_cnt));
+
+	ptr += sprintf(ptr, "bec_node_alloc_cnt - bec_node_free_cnt...............= %ld\n", 
+			(BEC_COUNTER_ATOMIC64_READ(bec_node_alloc_cnt) - BEC_COUNTER_ATOMIC64_READ(bec_node_free_cnt)));
+
+	ptr += sprintf(ptr, "bec_page_alloc_cnt...................................= %ld\n",
+			BEC_COUNTER_ATOMIC64_READ(bec_page_alloc_cnt));
+
+	ptr += sprintf(ptr, "bec_page_free_cnt....................................= %ld\n",
+			BEC_COUNTER_ATOMIC64_READ(bec_page_free_cnt));
+
+	ptr += sprintf(ptr, "bec_page_alloc_cnt - bec_page_free_cnt...............= %ld\n", 
+			(BEC_COUNTER_ATOMIC64_READ(bec_page_alloc_cnt) - BEC_COUNTER_ATOMIC64_READ(bec_page_free_cnt)));
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_table_size[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_table_size(CHAR *buf)
+{
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_table_size;
+	memset(avm_sysfs_entry_get_table_size, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "================================\n");
+	ptr += sprintf(ptr, "InMemory Tables Size Information\n");
+	ptr += sprintf(ptr, "================================\n");
+	ptr += sprintf(ptr, "LBA Table Size............= %llu (%lu size blocks) ", lba_table_size, LBA_BLOCK_SIZE);
+	ptr += sprintf(ptr, "%llu GB ", (lba_table_size * LBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (lba_table_size * LBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (lba_table_size * LBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", lba_table_size * LBA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "HASH Table Size...........= %llu (%lu size blocks) ", hash_table_size, HBA_BLOCK_SIZE);
+	ptr += sprintf(ptr, "%llu GB ", (hash_table_size * HBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (hash_table_size * HBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (hash_table_size * HBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", hash_table_size * HBA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "PBA Table Size............= %llu (%lu size blocks) ", pba_table_size, PBA_BLOCK_SIZE);
+	ptr += sprintf(ptr, "%llu GB ", (pba_table_size * PBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (pba_table_size * PBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (pba_table_size * PBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", pba_table_size * PBA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "MDE LBA Table Size........= %llu ", metadata_lba_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (metadata_lba_table_size * METADATA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%llu MB ", (metadata_lba_table_size * METADATA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%llu KB ", (metadata_lba_table_size * METADATA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", metadata_lba_table_size * METADATA_BLOCK_SIZE);
+
+	ptr += sprintf(ptr, "MDE LBA Lock Table Size...= %llu ", metadata_lba_lock_table_size);
+	ptr += sprintf(ptr, "%llu GB ", (metadata_lba_lock_table_size * sizeof(MD_LOCK)/GB));
+	ptr += sprintf(ptr, "%llu MB ", (metadata_lba_lock_table_size * sizeof(MD_LOCK)/MB));
+	ptr += sprintf(ptr, "%llu KB ", (metadata_lba_lock_table_size * sizeof(MD_LOCK)/KB));
+	ptr += sprintf(ptr, "%llu bytes\n", metadata_lba_lock_table_size * sizeof(MD_LOCK));
+
+	ptr += sprintf(ptr, "TAGET_DEVICE_SIZE.........= %zu (%lu size blocks) ", TARGET_DEVICE_SIZE, LBA_BLOCK_SIZE);
+	ptr += sprintf(ptr, "%zu GB ", (TARGET_DEVICE_SIZE * LBA_BLOCK_SIZE/GB));
+	ptr += sprintf(ptr, "%zu MB ", (TARGET_DEVICE_SIZE * LBA_BLOCK_SIZE/MB));
+	ptr += sprintf(ptr, "%zu KB ", (TARGET_DEVICE_SIZE * LBA_BLOCK_SIZE/KB));
+	ptr += sprintf(ptr, "%zu bytes\n", TARGET_DEVICE_SIZE * LBA_BLOCK_SIZE);
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_version[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_version(CHAR *buf)
+{
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_version;
+	memset(avm_sysfs_entry_get_version, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "AISA ZaidStor Major   = %d\n", DZ_AISA_VERSION_MAJOR);
+	ptr += sprintf(ptr, "AISA ZaidStor Minor   = %d\n", DZ_AISA_VERSION_MINOR);
+	ptr += sprintf(ptr, "AISA ZaidStor Patch   = %d\n", DZ_AISA_VERSION_PATCH);
+	ptr += sprintf(ptr, "AISA ZaidStor Release = %s\n", DZ_AISA_VERSION_RELEASE);
+	ptr += sprintf(ptr, "LINUX_VERSION_CODE    = %d\n", LINUX_VERSION_CODE);
+	return 0;
+}
+
+INT avm_get_list_of_volumes_short(CHAR *buf)
+{
+	PDEVICE_OBJECT object = NULL;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_list_of_volumes_short;
+
+
+	LOG("AVERMA:here1\n");
+	memset(avm_sysfs_entry_get_list_of_volumes_short, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+
+	if (!aisa_device_object) {
+		return 0;
+	}
+
+	spin_lock(&global_object_list.objectq_lock);
+
+	list_for_each_entry(object, &global_object_list.objectq_head, objectq) {
+		if (!object) {
+			continue;
+		}
+		if (object->obj_type == true) { // Just return only volume names
+			continue;
+		}
+
+		ptr += sprintf(ptr, "%s\n", object->obj_name);
+
+	}
+	spin_unlock(&global_object_list.objectq_lock);
+	return 0;
+}
+
+
+INT avm_get_list_of_volumes(CHAR *buf)
+{
+	PDEVICE_OBJECT object = NULL;
+	UINT found 	= 0;
+	UINT count	= 0;
+
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_list_of_volumes;
+
+
+	memset(avm_sysfs_entry_get_list_of_volumes, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+
+	ptr += sprintf(ptr, "\nListing Volumes Begin\n");
+	ptr += sprintf(ptr, "\n---------------------\n");
+
+	if (!aisa_device_object) {
+		ptr += sprintf(ptr, "\nAISA Target Not Found\n");
+		ptr += sprintf(ptr, "\n---------------------\n");
+		ptr += sprintf(ptr, "\nListing Volumes End\n");
+		return 0;
+	}
+
+	spin_lock(&global_object_list.objectq_lock);
+
+	list_for_each_entry(object, &global_object_list.objectq_head, objectq) {
+		if (!object) {
+			continue;
+		}
+		if (object->obj_type == true) { // Just return only volume names
+			continue;
+		}
+
+		ptr += sprintf(ptr,
+		"\n[%d]\n"
+		"Volume Name       = %s\n"
+		"Volume Path       = /dev/mapper/%s\n"
+		"Volume Unique Id  = %s\n",
+		++count,
+		object->obj_name,
+		object->obj_name,
+		object->obj_uuid);
+
+		found = 1;
+
+
+	}
+	spin_unlock(&global_object_list.objectq_lock);
+	if (found == 0) {
+		ptr += sprintf(ptr, "\nVolume Not Found\n");
+	}
+	ptr += sprintf(ptr, "\n-------------------\n");
+	ptr += sprintf(ptr, "\nTotal %d Volumes Found\n", count);
+	ptr += sprintf(ptr, "\nListing Volumes End\n");
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_target_name[DZ_SYSFS_PAGE_SIZE];
+extern PAVM_DEVICE 	aisa_device_object;
+INT avm_get_target_name(CHAR *buf)
+{
+	UINT len = 0;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_target_name;
+	if (!aisa_device_object) {
+		return 0;
+	}
+	memset(avm_sysfs_entry_get_target_name, 0, DZ_SYSFS_PAGE_SIZE);
+
+	len = strlen(aisa_device_object->obj.obj_name);
+
+	memcpy(ptr, aisa_device_object->obj.obj_name, len);
+	ptr += len;
+	memcpy(ptr, "|", 1);
+	ptr += 1;
+
+	len = strlen(aisa_device_object->obj.obj_uuid);
+	memcpy(ptr, aisa_device_object->obj.obj_uuid, len);
+	ptr += len;
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_target_backstore_name[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_target_backstore_name(CHAR *buf)
+{
+	UINT len = 0;
+	if (!aisa_device_object) {
+		return 0;
+	}
+	memset(avm_sysfs_entry_get_target_backstore_name, 0, DZ_SYSFS_PAGE_SIZE);
+	len = strlen(aisa_device_object->obj.obj_dm_dev_name);
+	memcpy(avm_sysfs_entry_get_target_backstore_name, aisa_device_object->obj.obj_dm_dev_name, len);
+	return 0;
+}
+
+extern U64 avm_sysfs_entry_get_pba_table_size;
+INT avm_pba_table_size_show(CHAR *buf)
+{
+	avm_sysfs_entry_get_pba_table_size = pba_table_size;
+	return 0;
+}
+
+extern U64 avm_sysfs_entry_get_hash_table_size;
+INT avm_get_hash_table_size(CHAR *buf)
+{
+	avm_sysfs_entry_get_hash_table_size = hash_table_size;
+	return 0;
+}
+
+INT avm_get_free_page_count(CHAR *buf)
+{
+	//avm_sysfs_entry_free_page_count = atomic64_read(&avm_free_page_list.freepageq_num_pages);
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_target_device_size_bytes[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_target_device_size_bytes(CHAR *buf)
+{
+	CHAR *device_name 	= avm_sysfs_entry_get_target_device_size_bytes;
+	INT ret = 0;
+	ULONG	size_in_bytes = 0;
+	LOG("Input Device Name : %s\n", device_name);
+
+	ret = dz_get_device_size(device_name, &size_in_bytes);	
+	if (ret == 0) {
+		sprintf(avm_sysfs_entry_get_target_device_size_bytes, "\n%lu", size_in_bytes);
+		LOG("Size of device is %lu bytes\n", size_in_bytes);
+	} else {
+		sprintf(avm_sysfs_entry_get_target_device_size_bytes, "%d", -1 );
+		LOG("Size of device %s is -1 byte. ", device_name);
+		LOG("IOCTL failed with error code %d\n", ret);
+	}
+
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_target_device_size_blocks[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_target_device_size_blocks(CHAR *buf)
+{
+	CHAR *device_name 	= avm_sysfs_entry_get_target_device_size_blocks;
+	INT ret = 0;
+	ULONG	size_in_blocks = 0;
+	LOG("Input Device Name : %s\n", device_name);
+
+	ret = dz_get_device_size(device_name, &size_in_blocks);	
+	if (ret == 0) {
+		size_in_blocks = (size_in_blocks / SECTOR_SIZE);
+		sprintf(avm_sysfs_entry_get_target_device_size_blocks, "\n%lu", size_in_blocks);
+		LOG("Size of device is %lu blocks (512 bytes block)\n", size_in_blocks);
+	} else {
+		sprintf(avm_sysfs_entry_get_target_device_size_blocks, "%d", -1 );
+		LOG("Size of device %s is -1 block. ", device_name);
+		LOG("IOCTL failed with error code %d\n", ret);
+	}
+
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_set_volume_info[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_set_volume_info(CHAR *buf)
+{
+	UINT len 	= 0;
+	PDEVICE_OBJECT object = NULL;
+	//PDDVOL		parent = NULL;
+	CHAR *name 	= avm_sysfs_entry_get_set_volume_info;
+	CHAR *parent_name 	= NULL;
+	CHAR obj_type_str[64] = "\0";
+	INT found = 0;
+	BOOL target_found = FALSE;
+
+	len = strlen(name);
+	LOG("len=%d\n", len);
+	LOG("name=<%s>\n", name);
+	if (!aisa_device_object) {
+		sprintf(avm_sysfs_entry_get_set_volume_info, "\nAISA Target Not Found\n");
+		return 0;
+	}
+	
+	spin_lock(&global_object_list.objectq_lock);
+
+	list_for_each_entry(object, &global_object_list.objectq_head, objectq) {
+		if (!object) {
+			continue;
+		}
+		if (strcmp(name, object->obj_name) == 0 ) {
+
+			switch(object->obj_type) {
+				case OBJECT_TYPE_AISA:
+				parent_name = NULL;
+				target_found = TRUE;
+				break;
+
+				case OBJECT_TYPE_DATA_VOLUME:
+				parent_name = object->obj_dm_dev_name;
+				strcpy(obj_type_str, "DATA_VOLUME");
+				break;
+
+				case OBJECT_TYPE_DATA_VOLUME_SNAPSHOT_READ:
+				parent_name = ((PDEVICE_OBJECT)(((PDDVOL)object)->ddvol_parent))->obj_name;
+				strcpy(obj_type_str, "DATA_VOLUME_SNAPSHOT_READ");
+				break;
+
+				case OBJECT_TYPE_DATA_VOLUME_SNAPSHOT_WRITE:
+				parent_name = ((PDEVICE_OBJECT)(((PDDVOL)object)->ddvol_parent))->obj_name;
+				strcpy(obj_type_str, "DATA_VOLUME_SNAPSHOT_WRITE");
+				break;
+
+				case OBJECT_TYPE_VM_VOLUME:
+				parent_name = object->obj_dm_dev_name;
+				strcpy(obj_type_str, "VIRTUAL_MACHINE_VOLUME");
+				break;
+
+				case OBJECT_TYPE_VM_VOLUME_SNAPSHOT_READ:
+				parent_name = ((PDEVICE_OBJECT)(((PDDVOL)object)->ddvol_parent))->obj_name;
+				strcpy(obj_type_str, "VIRTUAL_MACHINE_VOLUME_SNAPSHOT_READ");
+				break;
+
+				case OBJECT_TYPE_VM_VOLUME_SNAPSHOT_WRITE:
+				parent_name = ((PDEVICE_OBJECT)(((PDDVOL)object)->ddvol_parent))->obj_name;
+				strcpy(obj_type_str, "VIRTUAL_MACHINE_VOLUME_SNAPSHOT_WRITE");
+				break;
+			}
+
+			if (target_found) {
+				sprintf(avm_sysfs_entry_get_set_volume_info,
+				"\n"
+				"Target Info Begin\n" 
+				"--------------------------\n" 
+				"Target Name..............= %s\n"
+				"Target Path..............= /dev/mapper/%s\n"
+				"Target Type..............= %u : %s\n"
+				"Target MagicNo...........= %s\n"
+				"Target Unique Id(UUID)...= %s\n"
+				"Target StartLBA..........= %lli (512 Bytes Block)\n"
+				"Target EndLBA............= %lli (512 Bytes Block)\n"
+				"Target Size in Bytes.....= %lli (Bytes)\n"
+				"Target Size in Blocks....= %lli (512 Bytes Block)\n"
+				"Target Size in KB........= %lli (KB)\n"
+				"Target Size in MB........= %lli (MB)\n"
+				"Target Size in GB........= %lli (GB)\n"
+				"Target Extents...........= %llu\n"
+				"Target Extent Size.......= %lu bytes\n"
+				"Target Status............= %u\n"
+				"Target Flags.............= %u\n"
+				"Target Creation Date.....= %c%c/%c%c/%c%c%c%c (dd/mm/yyyy)\n"
+				"Target Creation Time.....= %c%c:%c%c:%c%c   (HH:MM:SS)\n"
+				"Target Backend Storage...= %s\n"
+				"--------------------------\n" 
+				"Target Info End",
+				object->obj_name,
+				object->obj_name,
+				object->obj_type,
+				obj_type_str,
+				object->obj_magicno,
+				object->obj_uuid,
+				object->obj_start_lba,
+				object->obj_end_lba,
+				((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE),
+				(object->obj_end_lba - object->obj_start_lba + 1),
+				(((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE) / KB),
+				(((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE) / MB),
+				(((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE) / GB),
+				((object->obj_end_lba-object->obj_start_lba + 1) * SECTOR_SIZE)/PAGE_SIZE,
+				PAGE_SIZE,
+				object->obj_flags,
+				object->obj_flags,
+				object->obj_date[0], object->obj_date[1], object->obj_date[2], object->obj_date[3],
+				object->obj_date[4], object->obj_date[5], object->obj_date[6], object->obj_date[7],
+				object->obj_time[0], object->obj_time[1], object->obj_time[2],
+				object->obj_time[3], object->obj_time[4], object->obj_time[5],
+				object->obj_dm_dev_name);
+				found = 1;
+
+				target_found = FALSE;
+			} else {
+
+				sprintf(avm_sysfs_entry_get_set_volume_info,
+				"\n"
+				"Volume Info Begin\n" 
+				"--------------------------\n" 
+				"Volume Name..............= %s\n"
+				"Volume Path..............= /dev/mapper/%s\n"
+				"Volume Type..............= %u : %s\n"
+				"Volume MagicNo...........= %s\n"
+				"Volume Unique Id(UUID)...= %s\n"
+				"Volume StartLBA..........= %lli (512 Bytes Block)\n"
+				"Volume EndLBA............= %lli (512 Bytes Block)\n"
+				"Volume Size in Bytes.....= %lli (Bytes)\n"
+				"Volume Size in Blocks....= %lli (512 Bytes Block)\n"
+				"Volume Size in KB........= %lli (KB)\n"
+				"Volume Size in MB........= %lli (MB)\n"
+				"Volume Size in GB........= %lli (GB)\n"
+				"Volume Extents...........= %llu\n"
+				"Volume Extent Size.......= %lu bytes\n"
+				"Volume Status............= %u\n"
+				"Volume Flags.............= %u\n"
+				"Volume Creation Date.....= %c%c/%c%c/%c%c%c%c (dd/mm/yyyy)\n"
+				"Volume Creation Time.....= %c%c:%c%c:%c%c   (HH:MM:SS)\n"
+				"Volume Parent Name.......= %s\n" 
+				"Volume Parent Name Path..= /dev/mapper/%s\n" 
+				"Volume Target Name.......= %s\n"
+				"--------------------------\n" 
+				"Volume Info End",
+				object->obj_name,
+				object->obj_name,
+				object->obj_type,
+				obj_type_str,
+				object->obj_magicno,
+				object->obj_uuid,
+				object->obj_start_lba,
+				object->obj_end_lba,
+				((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE),
+				(object->obj_end_lba - object->obj_start_lba + 1),
+				(((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE) / KB),
+				(((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE) / MB),
+				(((object->obj_end_lba - object->obj_start_lba + 1) * SECTOR_SIZE) / GB),
+				((object->obj_end_lba-object->obj_start_lba + 1) * SECTOR_SIZE)/PAGE_SIZE,
+				PAGE_SIZE,
+				object->obj_flags,
+				object->obj_flags,
+				object->obj_date[0], object->obj_date[1], object->obj_date[2], object->obj_date[3],
+				object->obj_date[4], object->obj_date[5], object->obj_date[6], object->obj_date[7],
+				object->obj_time[0], object->obj_time[1], object->obj_time[2],
+				object->obj_time[3], object->obj_time[4], object->obj_time[5],
+				parent_name,
+				parent_name,
+				object->obj_dm_dev_name);
+				found = 1;
+			}
+		}
+		
+	}
+	spin_unlock(&global_object_list.objectq_lock);
+	if (found == 0) {
+			sprintf(avm_sysfs_entry_get_set_volume_info, "\nVolume NOT Found\n");
+	}
+	return 0;
+}
+
+extern U64 avm_sysfs_entry_get_set_target_passthrough_mode;
+INT avm_get_target_passthrough_mode(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_target_passthrough_mode, dz_switch_passthrough_mode);
+}
+
+INT avm_set_target_passthrough_mode(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_passthrough_mode, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_target_passthrough_read;
+INT avm_get_target_passthrough_read(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_target_passthrough_read, dz_switch_passthrough_read);
+}
+
+INT avm_set_target_passthrough_read(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_passthrough_read, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_target_passthrough_write;
+INT avm_get_target_passthrough_write(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_target_passthrough_write, dz_switch_passthrough_write);
+}
+
+INT avm_set_target_passthrough_write(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_passthrough_write, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_fec;
+INT avm_get_switch_fec(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_fec, dz_switch_fec_engine);
+}
+
+INT avm_set_switch_fec(U64  buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_fec_engine, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_bec;
+INT avm_get_switch_bec(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_bec, dz_switch_bec_engine);
+}
+INT avm_set_switch_bec(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_bec_engine, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_dde;
+INT avm_get_switch_dde(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_dde, dz_switch_dedupe_engine);
+}
+
+INT avm_set_switch_dde(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_dedupe_engine, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_dae;
+INT avm_get_switch_dae(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_dae, dz_switch_alignment_engine);
+}
+
+INT avm_set_switch_dae(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_alignment_engine, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_dae_mbr;
+INT avm_get_switch_dae_mbr(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_dae_mbr, dz_switch_alignment_engine_multi_block_read);
+}
+
+INT avm_set_switch_dae_mbr(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_alignment_engine_multi_block_read, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_dae_mbw;
+INT avm_get_switch_dae_mbw(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_dae_mbw, dz_switch_alignment_engine_multi_block_write);
+}
+INT avm_set_switch_dae_mbw(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_alignment_engine_multi_block_write, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_dae_pbr;
+INT avm_get_switch_dae_pbr(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_dae_pbr, dz_switch_alignment_engine_partial_block_read);
+}
+INT avm_set_switch_dae_pbr(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_alignment_engine_partial_block_read, buf);
+}
+
+extern U64 avm_sysfs_entry_get_set_switch_dae_pbw;
+INT avm_get_switch_dae_pbw(CHAR *buf)
+{
+	DZ_SYS_GET_SWITCH(avm_sysfs_entry_get_set_switch_dae_pbw, dz_switch_alignment_engine_partial_block_write);
+}
+INT avm_set_switch_dae_pbw(U64 buf)
+{
+	DZ_SYS_SET_SWITCH(dz_switch_alignment_engine_partial_block_write, buf);
+}
+
+INT avm_get_list_of_objects(CHAR *buf)
+{
+	LOGSYS("%s",__func__);
+	print_object_list();
+	return 0;
+}
+
+INT avm_do_write_io(CHAR *buf)
+{
+	LOGSYS("%s",__func__);
+	dz_generate_write_io();
+	return 0;
+}
+
+INT avm_do_read_io(CHAR *buf)
+{
+	LOGSYS("%s",__func__);
+	dz_generate_read_io();
+	return 0;
+}
+
+INT avm_do_zero_io(CHAR *buf)
+{
+	LOGSYS("%s",__func__);
+	dz_generate_zero_io();
+	return 0;
+}
+
+extern INT dz_double_page;
+INT avm_do_write_verify_io(CHAR *buf)
+{
+	LOGSYS("%s",__func__);
+	printk(KERN_ERR"\n");
+	LOG("Generate Write Verify IO With Normal Pages Allocation\n");
+	dz_double_page = 0;
+	dz_generate_write_verify_io();
+	LOG("Generate Write Verify IO With Double Pages Allocation\n");
+	dz_double_page = 1;
+	dz_generate_write_verify_io();
+	printk(KERN_ERR"\n");
+	return 0;
+}
+extern PPBA_BLOCK	pba_table;
+extern PHASH_BLOCK	hash_table;
+extern PLBA_BLOCK	lba_table;
+extern U64 avm_sysfs_entry_get_set_lba_entry;
+extern U64 avm_sysfs_entry_get_set_pba_entry;
+extern BITMAP 			pba_bitmap;
+INT avm_get_lba_entry(CHAR *buf)
+{
+	UINT i = 0;
+	PLBA_BLOCK lba_entry       		= NULL;
+	PPBA_BLOCK pba_entry       		= NULL;
+	PHASH_BLOCK hash_entry     		= NULL;
+	U64 total_pba_entries_allocated = 0;
+
+	if (avm_sysfs_entry_get_set_lba_entry > lba_table_size) {
+		LOGE("Index is greater than lba table size\n");
+		return 0;
+	}
+
+	for_each_set_bit(i, pba_bitmap.bitmap, (pba_bitmap.num_of_longs) * sizeof(long)) {
+		total_pba_entries_allocated++;
+	}
+	LOG("Total PBA Entries Allocated %llu\n", total_pba_entries_allocated);
+	printk(KERN_ERR"\n");
+	lba_entry = GET_LBA_ENTRY(avm_sysfs_entry_get_set_lba_entry);
+	LOG("                                 lba = %llu\n", avm_sysfs_entry_get_set_lba_entry);
+	LOG("               lba_entry->hash_index = %u\n", lba_entry->hash_index);
+	LOG("     lba_entry->hash_collision_tag   = %llu\n", (U64)lba_entry->hash_collision_tag);
+	printk(KERN_ERR"\n");
+
+	hash_entry = GET_HASH_ENTRY(lba_entry->hash_index);
+	LOG("                                hash = %llu\n", (U64)lba_entry->hash_index);
+	LOG("               hash_entry->pba_index = %lu\n", (ULONG)hash_entry->pba_index);
+	printk(KERN_ERR"\n");
+
+	pba_entry  = GET_PBA_ENTRY(hash_entry->pba_index);
+	LOG("                           pba_index = %lu\n", (ULONG)hash_entry->pba_index);
+	LOG("     pba_entry->hash_collision_tag   = %llu\n", (U64)pba_entry->hash_collision_tag);
+	LOG("                     pba_entry->size = %llu\n", (U64)pba_entry->size);
+	LOG("                  pba_entry->ref_cnt = %llu\n", (U64)pba_entry->ref_cnt);
+	LOG("pba_entry->next_hash_collision_entry = %llu\n", (U64)pba_entry->next_entry_in_collision_list);
+	printk(KERN_ERR"\n");
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_set_lba_table_index[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_set_lba_table_index(CHAR *buf)
+{
+	ssize_t ret;
+	ULONG lba_index = 0;
+	UINT i = 0;
+	PLBA_BLOCK lba_entry 			= NULL;
+	PPBA_BLOCK pba_entry 			= NULL;
+	PHASH_BLOCK hash_entry          = NULL;
+	PMDD_BLOCK  metadata_entry 		= NULL;
+	U64 total_pba_entries_allocated = 0;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_set_lba_table_index;
+	ret = kstrtoul(ptr, 10, &lba_index);
+	if (ret) {
+		memset(avm_sysfs_entry_get_set_lba_table_index, 0, DZ_SYSFS_PAGE_SIZE);
+		memcpy(ptr, "\n", 1);
+		ptr += 1;
+		ptr += sprintf(ptr, "=================================\n");
+		if (ret == -EINVAL) {
+			ptr += sprintf(ptr, "Unable to convert to index. Invalid Index\n");
+		} else {
+			ptr += sprintf(ptr, "Unable to convert to index. ret = %zd\n", ret) ;
+		}
+		ptr += sprintf(ptr, "=================================\n");
+		return ret;
+	}
+
+	memset(avm_sysfs_entry_get_set_lba_table_index, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "========================================\n");
+	ptr += sprintf(ptr, "LBA Table Entry for Index %lu\n", lba_index);
+	ptr += sprintf(ptr, "========================================\n");
+	ptr += sprintf(ptr, "LBA Table Entry for Index %lu\n", lba_index);
+
+	if (lba_index > lba_table_size) {
+		ptr += sprintf(ptr, "Index %lu is greater than lba table size %llu\n",
+					lba_index, lba_table_size);
+		return 0;
+	}
+	for_each_set_bit(i, pba_bitmap.bitmap, (pba_bitmap.num_of_longs) * sizeof(long)) {
+		total_pba_entries_allocated++;
+	}
+	LOG("Total PBA Entries Allocated %llu\n", total_pba_entries_allocated);
+	lba_entry = GET_LBA_ENTRY(lba_index);
+	ptr += sprintf(ptr, "                                 lba   = %lu\n", lba_index);
+	ptr += sprintf(ptr, "               lba_entry->hash_index   = %u\n", lba_entry->hash_index);
+	ptr += sprintf(ptr, "     lba_entry->hash_collision_tag     = %llu\n", (U64)lba_entry->hash_collision_tag);
+
+	ptr += sprintf(ptr, "========================================\n");
+	ptr += sprintf(ptr, "Hash Table Entry for LBA Index %lu\n", lba_index);
+	ptr += sprintf(ptr, "========================================\n");
+	hash_entry = GET_HASH_ENTRY(lba_entry->hash_index);
+	ptr += sprintf(ptr, "                                hash   = %llu\n", (U64)lba_entry->hash_index);
+	ptr += sprintf(ptr, "               hash_entry->pba_index   = %lu\n", (ULONG)hash_entry->pba_index);
+
+	ptr += sprintf(ptr, "========================================\n");
+	ptr += sprintf(ptr, "PBA Table Entry for LBA Index %lu\n", lba_index);
+	ptr += sprintf(ptr, "========================================\n");
+	pba_entry  = GET_PBA_ENTRY(hash_entry->pba_index);
+	ptr += sprintf(ptr, "                           pba_index   = %lu\n", (ULONG)hash_entry->pba_index);
+	ptr += sprintf(ptr, "     pba_entry->hash_collision_tag     = %llu\n", (U64)pba_entry->hash_collision_tag);
+	ptr += sprintf(ptr, "                     pba_entry->size   = %llu\n", (U64)pba_entry->size);
+	ptr += sprintf(ptr, "                  pba_entry->ref_cnt   = %llu\n", (U64)pba_entry->ref_cnt);
+	ptr += sprintf(ptr, "pba_entry->next_hash_collision_entry   = %llu\n", (U64)pba_entry->next_entry_in_collision_list);
+
+	ptr += sprintf(ptr, "========================================\n");
+	ptr += sprintf(ptr, "Metadata Table Entry for LBA Index %lu\n", lba_index);
+	ptr += sprintf(ptr, "========================================\n");
+	metadata_entry  = GET_MDB_ENTRY(lba_index);
+	ptr += sprintf(ptr, "             metadata_entry->mdd_lba   = %llu\n", (U64)metadata_entry->mdd_lba);
+	ptr += sprintf(ptr, "            metadata_entry->mdd_hash   = %llx %llx %llx %llx \n",
+			(U64)metadata_entry->mdd_hash.hash32[0], (U64)metadata_entry->mdd_hash.hash32[1],
+			(U64)metadata_entry->mdd_hash.hash32[2], (U64)metadata_entry->mdd_hash.hash32[3]);
+	ptr += sprintf(ptr, "      metadata_entry->mdd_hash_index   = %u\n", (U32)metadata_entry->mdd_hash_index);
+	ptr += sprintf(ptr, "         metadata_entry->mdd_pba_index = %llu\n", (U64)metadata_entry->mdd_pba_index);
+	ptr += sprintf(ptr, "         metadata_entry->mdd_dd_sector = %llu\n", (U64)metadata_entry->mdd_dd_sector);
+	ptr += sprintf(ptr, "             metadata_entry->mdd_dirty = %d\n",  (INT)metadata_entry->mdd_dirty);
+	return 0;
+}
+
+INT avm_get_pba_entry(CHAR *buf)
+{
+	PPBA_BLOCK pba_entry = NULL;
+
+	if (avm_sysfs_entry_get_set_pba_entry > pba_table_size) {
+		LOGE("Index is greater than lba table size\n");
+		return 0;
+	}
+
+	printk(KERN_ERR"\n");
+	pba_entry  = GET_PBA_ENTRY(avm_sysfs_entry_get_set_pba_entry);
+	LOG("                           pba_index = %lu\n", (ULONG)avm_sysfs_entry_get_set_pba_entry);
+	LOG("     pba_entry->hash_collision_tag   = %llu\n", (U64)pba_entry->hash_collision_tag);
+	LOG("                     pba_entry->size = %llu\n", (U64)pba_entry->size);
+	LOG("                  pba_entry->ref_cnt = %llu\n", (U64)pba_entry->ref_cnt);
+	LOG("pba_entry->next_hash_collision_entry = %llu\n", (U64)pba_entry->next_entry_in_collision_list);
+	printk(KERN_ERR"\n");
+	return 0;
+}
+
+extern CHAR avm_sysfs_entry_get_set_pba_table_index[DZ_SYSFS_PAGE_SIZE];
+INT avm_get_set_pba_table_index(CHAR *buf)
+{
+	ssize_t ret;
+	ULONG pba_index = 0;
+	PPBA_BLOCK pba_entry = NULL;
+	CHAR *ptr = (CHAR *)avm_sysfs_entry_get_set_pba_table_index;
+	ret = kstrtoul(ptr, 10, &pba_index);
+	if (ret) {
+		memset(avm_sysfs_entry_get_set_pba_table_index, 0, DZ_SYSFS_PAGE_SIZE);
+		memcpy(ptr, "\n", 1);
+		ptr += 1;
+		ptr += sprintf(ptr, "=================================\n");
+		if (ret == -EINVAL) {
+			ptr += sprintf(ptr, "Unable to convert to index. Invalid Index\n");
+		} else {
+			ptr += sprintf(ptr, "Unable to convert to index. ret = %zd\n", ret) ;
+		}
+		ptr += sprintf(ptr, "=================================\n");
+		return ret;
+	}
+	memset(avm_sysfs_entry_get_set_pba_table_index, 0, DZ_SYSFS_PAGE_SIZE);
+	memcpy(ptr, "\n", 1);
+	ptr += 1;
+	ptr += sprintf(ptr, "=================================\n");
+	ptr += sprintf(ptr, "PBA Table Entry for Index %lu\n", pba_index);
+	ptr += sprintf(ptr, "=================================\n");
+
+	if (pba_index > pba_table_size) {
+		LOGE("Index is greater than lba table size\n");
+		ptr += sprintf(ptr, "Index %lu is greater than pba table size %llu\n",
+					pba_index, pba_table_size);
+		return 0;
+	}
+
+	pba_entry  = GET_PBA_ENTRY(pba_index);
+	ptr += sprintf(ptr, "                           pba_index = %lu\n", (ULONG)pba_index);
+	ptr += sprintf(ptr, "     pba_entry->hash_collision_tag   = %llu\n", (U64)pba_entry->hash_collision_tag);
+	ptr += sprintf(ptr, "                     pba_entry->size = %llu\n", (U64)pba_entry->size);
+	ptr += sprintf(ptr, "                  pba_entry->ref_cnt = %llu\n", (U64)pba_entry->ref_cnt);
+	ptr += sprintf(ptr, "pba_entry->next_hash_collision_entry = %llu\n", (U64)pba_entry->next_entry_in_collision_list);
+	return 0;
+}
+
+extern U64 avm_sysfs_entry_tasb;
+INT avm_get_tasb(CHAR *buf)
+{
+	/*
+	INT	lock = 0x0;
+	INT ret = 0;
+	LOG("\nTesting test_and_set_bit()\n");
+	lock = 0x0;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_set_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+
+	lock = 0x1;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_set_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+
+	lock = 0x2;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_set_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+
+	lock = 0x3;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_set_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+
+	*/
+
+	//The above experiment shows that test_and_set_bit() will work for bit nr 0 
+	//if the previous value is 0. This bit will be converted to 1
+	//So for values 0x3 and 0x1, the above function will return -1
+	//and for 0 and 2 it will return 0 and set the bit
+
+	/*
+	LOG("\nTesting test_and_clear_bit()\n");
+	lock = 0x0;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_clear_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+
+	lock = 0x1;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_clear_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+
+	lock = 0x2;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_clear_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+	
+	lock = 0x3;
+	LOG("Before lock =%d, 0x%x\n", lock, lock);
+	ret = test_and_clear_bit (0, &lock);
+	LOG("ret =%d, 0x%x\n", ret, ret);
+	LOG("After  lock =%d, 0x%x\n", lock, lock);
+	*/
+
+	spinlock_t lba_spin;
+	U64 start = 0;
+	U64 end = 0;
+	INT ret = 0;
+
+	union a {
+		struct {
+			INT first:1;
+			INT second:1;
+			INT third:3;
+			INT fourth:3;
+			
+		}__attribute__((__packed__));
+		INT c;
+	}__attribute__((__packed__));
+
+	LBA_BLOCK lb;
+	PLBA_BLOCK lbp = &lb;
+
+	union a b;
+	LOG("sizeofstruct a = %zu\n", sizeof(union a));
+	b.first = 0;
+	b.second = 0;
+	b.third = 7;
+	LOG("Before bit_spin_lock\n");
+	LOG("b.first   = %x\n", b.first);
+	LOG("b.second  = %x\n", b.second);
+	LOG("b.third   = %x\n", b.third);
+	LOG("b.c       = %d 0x%x\n", b.c, b.c);
+
+	//bit_spin_lock(0, &b.c);
+	LOG("After bit_spin_lock\n");
+	LOG("b.first   = %x\n", b.first);
+	LOG("b.second  = %x\n", b.second);
+	LOG("b.third   = %x\n", b.third);
+	LOG("b.c       = %d 0x%x\n", b.c, b.c);
+
+	//bit_spin_unlock(0, &b.c);
+	LOG("After bit_spin_unlock\n");
+	LOG("b.first   = %x\n", b.first);
+	LOG("b.second  = %x\n", b.second);
+	LOG("b.third   = %x\n", b.third);
+	LOG("b.c       = %d 0x%x\n", b.c, b.c);
+
+	LOG("\nsize of lba_block = %zu\n", sizeof(LBA_BLOCK));
+	LOG("\nsize of pba_block = %zu\n", sizeof(PBA_BLOCK));
+	LOG("\nsize of hash_block = %zu\n", sizeof(HASH_BLOCK));
+	//LBA_LOCK(&((GET_LBA_ENTRY(8))->lock));
+	//LBA_UNLOCK((GET_LBA_ENTRY(8))->lock);
+	MEMSET(&lb);
+	
+	spin_lock_init(&lba_spin);
+	lb.allocated = true;
+	lb.hash_index = 3;
+	print_lba_block(&lb);
+	LOG("test_bit = %d\n", test_bit(0, &lb.donotchange));
+	LOG("test_bit = %d\n", test_bit(1, &lb.donotchange));
+	LOG("test_bit = %d\n", test_bit(2, &lb.donotchange));
+	LOG("test_bit = %d\n", test_bit(3, &lb.donotchange));
+	LOG("test_bit = %d\n", test_bit(4, &lb.donotchange));
+	start = get_jiffies_64();
+	LBA_LOCK(&lb);
+	ret = bit_spin_trylock(0, &lb.donotchange);
+	LOG("\n ret = %d\n", ret);
+	print_lba_block(&lb);
+	LBA_UNLOCK(&lb);
+	end = get_jiffies_64();
+	LOG("start=%llx\n", start);
+	LOG("end=%llx\n", end);
+	LOG("diff=%x\n", jiffies_to_usecs(end-start));
+	print_lba_block(&lb);
+
+	start = get_jiffies_64();
+	spin_lock(&lba_spin);
+	if (lb.allocated == true ) {
+		lb.allocated = false;
+	}
+	end = get_jiffies_64();
+	spin_unlock(&lba_spin);
+
+	lb.allocated = true;
+	start = get_jiffies_64();
+	spin_lock(&lba_spin);
+	if (lbp->allocated == true ) {
+		lbp->allocated = false;
+	}
+	end = get_jiffies_64();
+	spin_unlock(&lba_spin);
+
+	print_lba_block(&lb);
+
+	bit_spin_unlock(0, &lb.donotchange);
+	print_lba_block(&lb);
+	return 0;
+}
+
+extern ATOMIC64	dedupe_disk_reads;
+extern ATOMIC64	dedupe_disk_writes;
+extern ATOMIC64	dedupe_zeroed_out_page_reads;
+extern ATOMIC64	dedupe_cache_hits;
+extern ATOMIC64	dedupe_deleted_entries;
+extern ATOMIC64	dedupe_cur_logical_space;
+extern ATOMIC64	dedupe_cur_physical_space;
+extern ATOMIC64	dedupe_cur_duplicate_space;
+extern U64		dedupe_tot_logical_space;
+extern U64		dedupe_tot_physical_space;
+
+//Dedupe Mempool Functions
+INT sys_dedupe_show(CHAR *buf)
+{
+	INT count = 0;
+	//Note: Value is NOT lock safe
+	count = sprintf(buf,
+	"Total Logical  Space        = %lli\n"
+	"Total Physical Space        = %lli\n"
+	"Current Logical  Space      = %lli\n"
+	"Current Physical Space      = %lli\n"
+	"Current Duplicate Space     = %lli\n"
+	"Deleted Entries             = %lli\n"
+	"Cache hits                  = %lli\n"
+	"Disk Reads                  = %lli\n"
+	"Disk Writes                 = %lli\n"
+	"Current Time                = %lli\n",
+	(U64)dedupe_tot_logical_space,
+	(U64)dedupe_tot_physical_space,
+	(U64)ATOMIC64_READ(dedupe_cur_logical_space),
+	(U64)ATOMIC64_READ(dedupe_cur_physical_space),
+	(U64)ATOMIC64_READ(dedupe_cur_duplicate_space),
+	(U64)ATOMIC64_READ(dedupe_deleted_entries),
+	(U64)ATOMIC64_READ(dedupe_cache_hits),
+	(U64)ATOMIC64_READ(dedupe_disk_reads),
+	(U64)ATOMIC64_READ(dedupe_disk_writes),
+	(U64)(GET_CURRENT_TIME()));
+
+	LOGR("<------------ Dedupe Show ----------->\n");
+	LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	return count;
+
+}
+extern U64			fec_active_count;
+extern U64			time_fec_write_start;
+extern U64			time_fec_write_switch;
+extern PFEC_TABLE	fec_tables_flush;
+extern U64			time_flush_prepare_start;
+extern U64			time_flush_start;
+extern U64			time_flush_end;
+extern ATOMIC64		fec_active_count_sequence;
+extern ATOMIC64		fec_free_count_sequence;
+extern ATOMIC64		fec_cur_flush_count;
+extern ATOMIC64		fec_flush_ops_count;
+extern ATOMIC64		fec_cur_flush_ops_count;
+extern ATOMIC64		fec_memory_reads_count;
+extern ATOMIC64		fec_forwarded_reads_count;
+INT sys_fec_show(CHAR *buf)
+{
+	INT count = 0;
+	//Note: Value is NOT lock safe
+	count = sprintf(buf,
+	"FEC Active Count Sequence   = %lli\n"
+	"FEC Free   Count Sequence   = %lli\n"
+	"FEC Active Count            = %lli\n"
+	"FEC Flush Ops Count         = %lli\n"
+	"Current Flush Ops Count     = %lli\n"
+	"FEC Memory Reads Count      = %lli\n"
+	"FEC Forwarded Reads Count   = %lli\n"
+	"FEC Write Start             = %lli\n"
+	"FEC Write Switch            = %lli\n"
+	"Current Time                = %lli\n"
+	"Diff wrt Current Time(secs) = %lli\n"
+	"Diff wrt Final(secs)        = %lli\n"
+	"Total Flush Count Pending   = %lli\n"
+	"Current Flush Count         = %lli\n"
+	"Flush Prepare Start         = %lli\n"
+	"Flush Start Time            = %lli\n"
+	"Flush End Time              = %lli\n"
+	"Current Time                = %lli\n"
+	"Diff wrt Current Time(secs) = %lli\n"
+	"Diff wrt Final(secs)        = %lli\n",
+	//"Flush Completion Rate(psec) = %lli\n",
+	(U64)READ_COUNTER(fec_active_count_sequence),
+	(U64)READ_COUNTER(fec_free_count_sequence),
+	fec_active_count,
+	(U64)READ_COUNTER(fec_flush_ops_count),
+	(U64)READ_COUNTER(fec_cur_flush_ops_count),
+	(U64)READ_COUNTER(fec_memory_reads_count),
+	(U64)READ_COUNTER(fec_forwarded_reads_count),
+	time_fec_write_start,
+	time_fec_write_switch,
+	GET_CURRENT_TIME(),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_fec_write_start, GET_CURRENT_TIME())/1000),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_fec_write_start, time_fec_write_switch)/1000),
+	(U64)fec_tables_flush->total_flush_cnt,
+	(U64)READ_COUNTER(fec_cur_flush_count),
+	(U64)time_flush_prepare_start,
+	(U64)time_flush_start,
+	(U64)time_flush_end,
+	(U64)GET_CURRENT_TIME(),
+	(U64)(GET_TIME_DIFF_IN_SECONDS(time_flush_start, GET_CURRENT_TIME())/1000),
+	(U64)((GET_TIME_DIFF_IN_SECONDS(time_flush_start, time_flush_end))/1000)
+	);
+	/*
+	(U64) ((READ_COUNTER(fec_cur_flush_count)) / 
+	(GET_TIME_DIFF_IN_SECONDS(time_flush_start, GET_CURRENT_TIME())/1000)));
+	*/
+
+	LOGR("<------------ FEC Show ----------->\n");
+	LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	return 0;
+}
+
+extern ATOMIC64	bec_pba_page_count;
+extern ATOMIC64	bec_cache_hit;
+extern ATOMIC64	bec_cache_miss;
+extern ATOMIC64	bec_cache_delete;
+extern ULONG	bec_size;
+extern INT		bec_cutoff_nodes;
+extern INT		bec_cutoff_percent;
+extern U64		bec_engine_memory_usage;
+extern INT		dz_bec_node_mempool_count;
+
+
+INT sys_bec_show(CHAR *buf)
+{
+	INT count = 0;
+	//Note: Value is NOT lock safe
+	count = sprintf(buf,
+	"bec_pba_page_count          = %lli\n"
+	"bec_cache_hit               = %lli\n"
+	"bec_cache_miss              = %lli\n"
+	"bec_cache_delete            = %lli\n"
+	"bec_size                    = %lli\n"
+	"bec_cutoff_nodes            = %lli\n"
+	"bec_cutoff_percent          = %lli\n"
+	"bec_node_mempool_count      = %lli\n",
+	(U64)READ_COUNTER(bec_pba_page_count),
+	(U64)ATOMIC64_READ(bec_cache_hit),
+	(U64)ATOMIC64_READ(bec_cache_miss),
+	(U64)ATOMIC64_READ(bec_cache_delete),
+	(U64)bec_size,
+	(U64)bec_cutoff_nodes,
+	(U64)bec_cutoff_percent,
+	(U64)dz_bec_node_mempool_count);
+
+	LOGR("<------------ BEC Show ----------->\n");
+	LOGR("%s",buf);
+
+	LOGD("Buffer Bytes used           = %d\n", count);
+	return count;
+
+}
+
+extern CHAR avm_sysfs_entry_issue_read_io_on_device[DZ_SYSFS_PAGE_SIZE];
+extern U64 avm_sysfs_entry_issue_read_io_at_sector;
+extern INT avm_sysfs_entry_issue_read_io_with_size;
+
+//This function will read the data in the form pages by using bio framework. 
+// It essentially means that it will not go through dmtarget map function
+// There are three main inputs to this function which is provided through
+// sysfs interface
+// Device Name : avm_sysfs_entry_issue_read_io_on_device
+// IO Sector   : avm_sysfs_entry_issue_read_io_at_sector
+// IO Size     : avm_sysfs_entry_issue_read_io_with_size
+//
+// As an output, the read pages are printed into syslog and will be visible 
+// through dmesg
+RINT  dz_generate_read_io(VOID)
+{
+	INT ret = SUCCESS;
+	IOREQUEST iorequest;
+	DATA_PAGES_T data_pages;
+	MEMSET(&iorequest);
+
+
+	LOG("avm_sysfs_entry_issue_read_io_on_device = %s\n", avm_sysfs_entry_issue_read_io_on_device);
+	LOG("avm_sysfs_entry_issue_read_io_at_sector = %lli\n", avm_sysfs_entry_issue_read_io_at_sector);
+	LOG("avm_sysfs_entry_issue_read_io_with_size = %d\n", avm_sysfs_entry_issue_read_io_with_size);
+
+	iorequest.ior_sector	= avm_sysfs_entry_issue_read_io_at_sector;
+	iorequest.ior_size 		= avm_sysfs_entry_issue_read_io_with_size;
+	ret = dz_read_data_from_block_device(&iorequest, avm_sysfs_entry_issue_read_io_on_device, &data_pages);
+	if (ret != SUCCESS) {
+		LOGE("IO Read Failure on device %s \n", avm_sysfs_entry_issue_read_io_on_device);
+	} else {
+		LOG("IO Read successfully\n");
+		print_data_pages(&data_pages);
+		dz_free_data_pages(&data_pages, false);
+	}
+	RETURN;
+}
+EXPORT_SYMBOL(dz_generate_read_io);
+
+extern CHAR avm_sysfs_entry_issue_write_io_on_device[DZ_SYSFS_PAGE_SIZE];
+extern U64 avm_sysfs_entry_issue_write_io_at_sector;
+extern INT avm_sysfs_entry_issue_write_io_with_size;
+
+RINT dz_generate_write_io(VOID)
+{
+	INT ret = SUCCESS;
+	IOREQUEST iorequest;
+	MEMSET(&iorequest);
+
+	if (avm_sysfs_entry_issue_write_io_with_size > _16K) {
+
+		LOGW("IO Size is higher than 16K. Limiting it to 16K only\n");
+		avm_sysfs_entry_issue_write_io_with_size = _16K;
+	}
+
+	LOG("avm_sysfs_entry_issue_write_io_on_device = %s\n", avm_sysfs_entry_issue_write_io_on_device);
+	LOG("avm_sysfs_entry_issue_write_io_at_sector = %lli\n", avm_sysfs_entry_issue_write_io_at_sector);
+	LOG("avm_sysfs_entry_issue_write_io_with_size = %d\n", avm_sysfs_entry_issue_write_io_with_size);
+	
+	iorequest.ior_sector	= avm_sysfs_entry_issue_write_io_at_sector;
+	iorequest.ior_size 		= avm_sysfs_entry_issue_write_io_with_size;
+	iorequest.ior_private		= dz_get_io_data(iorequest.ior_size);
+	//strncpy(DATA_DISK_DEVICE_NAME, avm_sysfs_entry_issue_write_io_on_device, strlen(avm_sysfs_entry_issue_write_io_on_device));
+
+	//ret = dz_write_data(&iorequest);
+	ret = dz_write_data_to_block_device(&iorequest, avm_sysfs_entry_issue_write_io_on_device);
+	if (ret != SUCCESS) {
+		LOGE("IO Write Failure on device \n");
+	} else {
+		LOG("IO written successfully\n");
+	}
+	RETURNS ;
+}
+EXPORT_SYMBOL(dz_generate_write_io);
+
+
+
+extern CHAR avm_sysfs_entry_issue_zero_io_on_device[DZ_SYSFS_PAGE_SIZE];
+extern U64 avm_sysfs_entry_issue_zero_io_at_sector;
+extern INT avm_sysfs_entry_issue_zero_io_with_size;
+
+RINT dz_generate_zero_io(VOID)
+{
+	INT ret = SUCCESS;
+	IOREQUEST iorequest;
+	MEMSET(&iorequest);
+
+	if (avm_sysfs_entry_issue_zero_io_with_size > _16K) {
+
+		LOGW("IO Size is higher than 16K. Limiting it to 16K only\n");
+		avm_sysfs_entry_issue_zero_io_with_size = _16K;
+	}
+
+	LOG("avm_sysfs_entry_issue_zero_io_on_device = %s\n", avm_sysfs_entry_issue_zero_io_on_device);
+	LOG("avm_sysfs_entry_issue_zero_io_at_sector = %lli\n", avm_sysfs_entry_issue_zero_io_at_sector);
+	LOG("avm_sysfs_entry_issue_zero_io_with_size = %d\n", avm_sysfs_entry_issue_zero_io_with_size);
+	
+	iorequest.ior_sector	= avm_sysfs_entry_issue_zero_io_at_sector;
+	iorequest.ior_size 		= avm_sysfs_entry_issue_zero_io_with_size;
+
+	iorequest.ior_private		= dz_kmalloc(iorequest.ior_size, GFP_KERNEL|__GFP_ZERO);
+
+	//ret = dz_zero_data(&iorequest);
+	ret = dz_write_data_to_block_device(&iorequest, avm_sysfs_entry_issue_zero_io_on_device);
+	if (ret != SUCCESS) {
+		LOGE("Zeroed IO Failure on device \n");
+	} else {
+		LOG("Zeroed IO written successfully\n");
+	}
+	dz_kfree(iorequest.ior_private, iorequest.ior_size);
+	RETURNS ;
+}
+EXPORT_SYMBOL(dz_generate_zero_io);
+
+
+extern CHAR avm_sysfs_entry_issue_read_io_on_device[DZ_SYSFS_PAGE_SIZE];
+extern U64 avm_sysfs_entry_issue_read_io_at_sector;
+extern INT avm_sysfs_entry_issue_read_io_with_size;
+extern INT avm_sysfs_entry_write_verify_io;
+
+RINT dz_generate_write_verify_io(VOID)
+{
+	INT ret 				= SUCCESS;
+	UINT	pgcnt			= 0;
+	PVOID pagedata 			= NULL;
+	CHAR	*readbuf		= NULL;
+	CHAR	*preadbuf		= NULL;
+	INT 				i 	= 0;
+	BOOL			same	= true;
+	DATA_PAGES_T	data_pages;
+
+	IOREQUEST iorequest;
+	MEMSET(&iorequest);
+	readbuf = vmalloc(_16K); //Max is 16K buffer so far.
+	if (!readbuf) {
+		LOGE("Unable to allocate memory for readbuf, hence quitting\n");
+		avm_sysfs_entry_write_verify_io = TEST_FAILED;
+		RETURNF;
+	}
+	MEMSET(readbuf);
+	preadbuf = readbuf;
+	
+
+	if (avm_sysfs_entry_issue_write_io_with_size > _16K) {
+		LOGW("IO Size is higher than 16K. Limiting it to 16K only for writes\n");
+		avm_sysfs_entry_issue_write_io_with_size = _16K;
+	}
+	
+	//Issue a write first
+	iorequest.ior_sector	= avm_sysfs_entry_issue_write_io_at_sector;
+	iorequest.ior_size 		= avm_sysfs_entry_issue_write_io_with_size;
+	iorequest.ior_private		= dz_get_io_data(iorequest.ior_size);
+	strncpy(DATA_DISK_DEVICE_NAME, avm_sysfs_entry_issue_write_io_on_device, strlen(avm_sysfs_entry_issue_write_io_on_device));
+
+	if ((avm_sysfs_entry_issue_write_io_with_size % SECTOR_SIZE) != 0) {
+		LOGE("IO MUST be in multiples of 512 bytes i.e. SECTOR_SIZE, hence quitting\n");
+		avm_sysfs_entry_write_verify_io = TEST_FAILED;
+		RETURNF;
+
+	}
+
+	ret = dz_write_data(&iorequest);
+	if (ret != SUCCESS) {
+		LOGE("IO Write Failure on device \n");
+		avm_sysfs_entry_write_verify_io = TEST_FAILED;
+		RETURNF;
+	} else {
+		LOG("IO written successfully\n");
+	}
+
+	MEMSET(&iorequest);
+
+	if (avm_sysfs_entry_issue_write_io_with_size > _16K) {
+		LOGW("IO Size is higher than 16K. Limiting it to 16K only for reads as well\n");
+		avm_sysfs_entry_issue_read_io_with_size = _16K;
+	}
+	//Issue a read second. issue_read_io_at_sector anad read_io_size will be same as 
+	//write_io_sector and write_io_size
+	iorequest.ior_sector	= avm_sysfs_entry_issue_read_io_at_sector;
+	iorequest.ior_size 		= avm_sysfs_entry_issue_read_io_with_size;
+	strncpy(DATA_DISK_DEVICE_NAME, avm_sysfs_entry_issue_read_io_on_device, strlen(avm_sysfs_entry_issue_read_io_on_device));
+	ret = dz_read_data(&iorequest, &data_pages);
+	if (ret != SUCCESS) {
+		LOGE("IO Read Failure on device \n");
+		avm_sysfs_entry_write_verify_io = TEST_FAILED;
+		RETURNF;
+	} else {
+		LOG("IO Read successfully\n");
+		pgcnt = data_pages.pgcnt;
+		for (i=0; i < pgcnt; i++){
+			PBIOVEC bvec = &(data_pages.pagevec[i]);
+			pagedata = kmap(bvec->bv_page);
+			pagedata += bvec->bv_offset;
+			memcpy(preadbuf, pagedata, bvec->bv_len);
+			kunmap(bvec->bv_page);
+			preadbuf += bvec->bv_len;
+		}
+		LOG("Buffer is read successfully and copied locally\n");
+		if (strncmp(dz_get_io_data(iorequest.ior_size), readbuf, avm_sysfs_entry_issue_read_io_with_size) == 0 ) {
+			same = true;
+		} else {
+			same = false;
+		}
+		vfree(readbuf);
+		dz_free_data_pages(&data_pages, false);
+		if (same) {
+			LOG("\nRESULT:PASSED: Write Data and Readback Data are same\n");
+			avm_sysfs_entry_write_verify_io = TEST_PASSED;
+		} else {
+			LOG("\nRESULT:FAILED: Write Data and Readback Data are different\n");
+			avm_sysfs_entry_write_verify_io = TEST_FAILED;
+		}
+	}
+	RETURNS ;
+}
+
+EXPORT_SYMBOL(dz_generate_write_verify_io);
