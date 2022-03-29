@@ -53,6 +53,7 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/poll.h>
+#include <linux/sched/signal.h>
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 18)
 #include <asm/uaccess.h>
