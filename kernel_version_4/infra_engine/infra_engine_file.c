@@ -8,8 +8,6 @@
 
 #include "prototypes.h"
 
-#ifdef DZ_KERNEL_VERSION_4
-
 struct file *dz_file_open(const char *path, INT flags, INT rights) 
 {
 	struct file *filp = NULL;
@@ -51,65 +49,3 @@ RINT dz_file_sync(struct file *file)
 	return vfs_fsync(file, 0);
 }
 EXPORT_SYMBOL(dz_file_sync);
-
-#else
-struct file *dz_file_open(const char *path, INT flags, INT rights) 
-{
-	struct file *filp = NULL;
-	mm_segment_t oldfs;
-	INT err = 0;
-
-	oldfs = get_fs();
-	set_fs(get_ds());
-	filp = filp_open(path, flags, rights);
-	set_fs(oldfs);
-	if (IS_ERR(filp)) {
-		err = PTR_ERR(filp);
-		RETURNN;
-	}
-	return filp;
-}
-EXPORT_SYMBOL(dz_file_open);
-
-RVOID dz_file_close(struct file *file) 
-{
-	filp_close(file, NULL);
-}
-EXPORT_SYMBOL(dz_file_close);
-
-ssize_t dz_file_read(struct file *file, char __user *data, size_t size, loff_t *offset) 
-{
-	mm_segment_t oldfs;
-	INT ret;
-
-	oldfs = get_fs();
-	set_fs(get_ds());
-
-	ret = vfs_read(file, data, size, &offset);
-
-	set_fs(oldfs);
-	return ret;
-}
-EXPORT_SYMBOL(dz_file_read);
-
-ssize_t dz_file_write(struct file *file, const char __user *data, size_t size, loff_t offset) 
-{
-    mm_segment_t oldfs;
-    INT ret;
-
-    oldfs = get_fs();
-    set_fs(get_ds());
-
-    ret = vfs_write(file, data, size, &offset);
-
-    set_fs(oldfs);
-    return ret;
-}
-EXPORT_SYMBOL(dz_file_write);
-
-RINT dz_file_sync(struct file *file) 
-{
-	return vfs_fsync(file, 0);
-}
-EXPORT_SYMBOL(dz_file_sync);
-#endif
