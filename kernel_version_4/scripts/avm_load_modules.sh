@@ -13,7 +13,7 @@ AEM="avm_7_alignment_engine_module.ko"
 FEM="avm_8_fec_engine_module.ko"
 TEM="avm_9_target_engine_module.ko"
 VEM="avm_A_volume_engine_module.ko"
-SEM="avm_B_B_sysfs_engine_module.ko"
+SEM="avm_B_sysfs_engine_module.ko"
 
 
 	################################################
