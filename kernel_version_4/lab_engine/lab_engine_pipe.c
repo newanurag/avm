@@ -29,7 +29,7 @@ PCHAR dz_pipe_init(char *pipebuf, char *pipename)
 	pipe_size	= PAGE_SIZE;
 	pipe_incount	= -1;
 	pipe_outcount	= -1;
-	memset(&pipebuf, 0, pipe_size);
+	//TODO:memset(&pipebuf, 0, pipe_size);
 
 	//Spinlocks Initializations
 	spin_lock_init(&pipe_space_spinlock);

@@ -22,12 +22,12 @@ DZ_FEC_ENGINE_PATH       := $(DZ_CURRENT_BUILD_PATH)/fec_engine
 DZ_TARGET_ENGINE_PATH    := $(DZ_CURRENT_BUILD_PATH)/target_engine
 DZ_VOLUME_ENGINE_PATH    := $(DZ_CURRENT_BUILD_PATH)/volume_engine
 DZ_SYSFS_ENGINE_PATH     := $(DZ_CURRENT_BUILD_PATH)/sysfs_engine
-DZ_KERNEL_OBJECTS_PATH   := $(DZ_CURRENT_BUILD_PATH)/kernel_objects	
+DZ_KERNEL_OBJECTS_PATH   := $(DZ_CURRENT_BUILD_PATH)/kernel_objects
 
 
 
-#DZ_PACKAGE_NAME_BASE = avm
-DZ_PACKAGE_NAME_BASE = zaidstor_databank
+DZ_PACKAGE_NAME_BASE = avm
+#DZ_PACKAGE_NAME_BASE = zaidstor_databank
 #DZ_PACKAGE_NAME_BASE = "zaidstor_databank_""`date +'%d_%m_%Y_%H_%M_%S'`"
 DZ_PACKAGE_NAME_SHIP_COMPLETE = $(DZ_PACKAGE_NAME_BASE)
 DZ_PACKAGE_NAME_SHIP_SOURCE_CODE = avm_src
@@ -48,21 +48,37 @@ obj-m                       := $(KERNEL_MODULE_NAME).o
 
 .PHONY: subdirs $(DZ_SUBDIRS) tag
 
+_log:
+	@echo ""
+	@echo "############################################"
+	@echo "1/11 - Building AVM Log Engine"
+	@date
+	@echo $(DZ_LOG_ENGINE_PATH)
+	@echo "############################################"
+	@echo ""
+	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_LOG_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
+	@echo ""
+	mv $(DZ_CURRENT_BUILD_PATH)/log_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
+	@echo ""
+	@date
+
+log:_log
+
 _infra:
 	@echo ""
 	@echo "############################################"
 	@echo "2/11 - Building AVM Infrastructure Engine"
 	@date
-	@echo $(DZ_LOG_ENGINE_PATH)
+	@echo $(DZ_INFRA_ENGINE_PATH)
 	@echo "############################################"
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_INFRA_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/infra_engine/*.ko .
+	mv $(DZ_CURRENT_BUILD_PATH)/infra_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
-infra:_infra
+infra:log _infra
 
 _lab:
 	@echo ""
@@ -74,7 +90,7 @@ _lab:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_LAB_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/lab_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/lab_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -90,11 +106,11 @@ _bec:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_BEC_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/bec_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/bec_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
-bec:infra _bec
+bec:lab _bec
 
 _md:
 	@echo ""
@@ -106,7 +122,7 @@ _md:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_METADATA_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/metadata_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/metadata_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -123,7 +139,7 @@ _dedupe:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_DEDUPE_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/dedupe_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/dedupe_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -139,7 +155,7 @@ _fec:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_FEC_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/fec_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/fec_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -155,7 +171,7 @@ _ae:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_ALIGNMENT_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/alignment_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/alignment_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -171,7 +187,7 @@ _target:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_TARGET_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/target_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/target_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -187,7 +203,7 @@ _volume:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_VOLUME_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#@cp $(DZ_CURRENT_BUILD_PATH)/volume_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/volume_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	@date
 
@@ -204,7 +220,7 @@ _sysfs:
 	@echo ""
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_SYSFS_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
-	#cp $(DZ_CURRENT_BUILD_PATH)/sysfs_engine/*.ko .
+	@mv $(DZ_CURRENT_BUILD_PATH)/sysfs_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
 	date
 
@@ -228,7 +244,6 @@ alld:tags sysfs
 	@echo "##################################################################################"
 	@echo "List and Checksum of Kernel Modules generated" 
 	@echo "##################################################################################"
-	@cksum *.ko
 	@echo "##################################################################################"
 	@echo "Compilation Done"
 	@date
@@ -237,15 +252,15 @@ alld:tags sysfs
 d:alld
 
 
+mkdir:
+	mkdir -p $(DZ_KERNEL_OBJECTS_PATH)
 
-
-all:sysfs
+all:mkdir sysfs
 	logger `date`
 	@echo ""
 	@echo "##################################################################################"
 	@echo "List and Checksum of Kernel Modules generated" 
 	@echo "##################################################################################"
-	@cksum *.ko
 	@echo "##################################################################################"
 	@echo "Compilation Done"
 	@date
@@ -327,3 +342,20 @@ clean:
 	@echo "Cleaning Completed"
 	@date
 	@echo "#########################################"
+
+pkg:
+	@echo ""
+	@echo "##################################################################################"
+	@echo "Building RPM Package of AVM" 
+	@date
+	@echo "##################################################################################"
+	@echo ""
+	DZ_PROJECT_PATH=$(DZ_PROJECT_PATH) \
+	DZ_PACKAGE_DIR=$(DZ_PACKAGE_DIR_SHIP_COMPLETE) \
+	DZ_PACKAGE_NAME=${DZ_PACKAGE_NAME_SHIP_COMPLETE} \
+	${DZ_RPM_BUILD_SCRIPT} > /dev/null
+	@echo "##################################################################################"
+	@echo ""
+	@date
+	#scp packaging/release/avm-1.0-0.el7.centos.x86_64.rpm root@192.168.122.233:/home/aisa/
+

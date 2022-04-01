@@ -196,6 +196,12 @@ log:
 4c:
 	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile clean)
 
+4log:
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _log)
+
+4lab:
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _lab)
+
 4infra:
 	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _infra)
 
@@ -227,6 +233,9 @@ log:
 
 4sysfs:
 	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _sysfs)
+
+4pkg:
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile pkg)
 
 
 4a:4
@@ -336,7 +345,9 @@ pagec:
 	
 scp:
 	#scp *.ko /home/aisa/flash_volume_manager/cli/* aisa@192.168.122.233:/home/aisa/avm/
-	scp *.ko makefile.remote /home/aisa/avmdev/cli/*.py root@192.168.122.233:/home/aisa/avm/
+	#scp *.ko makefile.remote /home/aisa/avmdev/cli/*.py root@testvm:/home/averma/test/
+	scp -r /home/averma/avm/kernel_version_4/kernel_objects root@testvm:/home/averma/avm/
+	scp -r /home/averma/avm/kernel_version_4/scripts        root@testvm:/home/averma/avm/
 
 treboot:
 	ssh root@192.168.122.233 "cd /home/aisa/avm; make -f /home/aisa/avm/makefile.remote treboot"
