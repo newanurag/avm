@@ -1,2 +1,1 @@
-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
-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
+../github_token.txt
