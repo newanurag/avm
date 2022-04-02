@@ -9,6 +9,6 @@ cscope.out
 *.swn
 *.swo
 *.swp
-Module.symvers
-modules.order
+#Module.symvers
+#modules.order
 include.mk
