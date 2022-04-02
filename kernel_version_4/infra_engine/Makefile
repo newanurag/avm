@@ -50,9 +50,9 @@ obj-m                       := $(KERNEL_MODULE_NAME).o
 
 all:
 ifndef TARGET_KERNEL_SRC_PATH
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules O=/averma/
 else
-	make -C $(TARGET_KERNEL_SRC_PATH) M=$(PWD)/infra_engine modules
+	make -C $(TARGET_KERNEL_SRC_PATH) M=$(PWD)/infra_engine modules O=/averma/
 endif
 
 clean:

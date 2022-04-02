@@ -356,7 +356,7 @@ tshut:
 	ssh root@192.168.122.233 "cd /home/aisa/avm; make -f /home/aisa/avm/makefile.remote tshut"
 
 list:
-	find . -name "*.ko"
+	find ${PWD} -name "*.ko"
 
 cs:
 	rm -rf tags cscope.out ; ctags -R ; cscope -R

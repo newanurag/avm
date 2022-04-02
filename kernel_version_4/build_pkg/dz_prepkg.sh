@@ -55,15 +55,15 @@ mkdir -p ${DZ_PACKAGE_DIR}/${DZ_MODULE_DM}/${DZ_SCRIPTS_DIR_NAME} 	|| exit 1
 # Copy all the files to be shipped
 
 #Copy Drivers/Kernel Modules files
-cp -r ${DZ_PROJECT_SOURCE_PATH}/*.ko 									${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/infra_engine/datumsoft*.o 				${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/alignment_engine/datumsoft*.o 			${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/target_engine/datumsoft*.o				${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/bec_engine/datumsoft*.o 				${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/fec_engine/datumsoft*.o 				${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/volume_engine/datumsoft*.o 				${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/dedupe_engine/datumsoft*.o 				${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
-cp -r ${DZ_PROJECT_SOURCE_PATH}/metadata_engine/datumsoft*.o 			${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/kernel_objects/*.ko 					${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/infra_engine/*.o 						${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/alignment_engine/*.o 					${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/target_engine/*.o						${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/bec_engine/*.o 							${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/fec_engine/*.o 							${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/volume_engine/*.o 						${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/dedupe_engine/*.o 						${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/metadata_engine/*.o 					${DZ_MODULE_AVM_DIR}/${DZ_KERNEL_DIR_NAME}/
 
 #Copy License file
 cp -r ${DZ_PROJECT_SOURCE_PATH}/License.txt 							${DZ_MODULE_AVM_DIR}/${DZ_LICENSE_DIR_NAME}/
@@ -80,7 +80,7 @@ cp -r ${DZ_PROJECT_SOURCE_PATH}/infra_engine/infra_engine_target.c 		${DZ_MODULE
 cp -r ${DZ_PROJECT_SOURCE_PATH}/scripts/*.conf 							${DZ_MODULE_AVM_DIR}/${DZ_ETC_DIR_NAME}/
 
 #Copy documentation file
-cp -r ${DZ_PROJECT_SOURCE_PATH}/*.cli 									${DZ_MODULE_AVM_DIR}/${DZ_DOCS_DIR_NAME}/
+cp -r ${DZ_PROJECT_SOURCE_PATH}/cli_engine/*.cli 						${DZ_MODULE_AVM_DIR}/${DZ_DOCS_DIR_NAME}/
 
 #Copy CLI Files
 cp -r ${DZ_PROJECT_SOURCE_PATH}/cli_engine/AISA_Error.py 				${DZ_MODULE_AVM_DIR}/${DZ_BIN_DIR_NAME}/

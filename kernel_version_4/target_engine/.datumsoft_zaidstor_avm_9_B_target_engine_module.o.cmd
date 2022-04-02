@@ -1,1 +1,0 @@
-cmd_/home/averma/avm/kernel_version_4/target_engine/datumsoft_zaidstor_avm_9_B_target_engine_module.o := ld -m elf_x86_64  -z max-page-size=0x200000   -r -o /home/averma/avm/kernel_version_4/target_engine/datumsoft_zaidstor_avm_9_B_target_engine_module.o /home/averma/avm/kernel_version_4/target_engine/aisa_init.o 

@@ -1,0 +1,9 @@
+tags
+cscope.out
+*.o
+*.mod.o
+*.mod.c
+*.ko.cmd
+*.o.cmd
+*.mod
+

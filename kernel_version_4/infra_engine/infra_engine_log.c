@@ -49,6 +49,7 @@ RINT dz_avm_log_file_write(const char *format, ...)
 	count = sprintf(logbuf,"%lli:[%lli]", (U64)GET_CURRENT_TIME(), (U64)ATOMIC64_READ(dz_avm_log_file_index));
 	count2 = vsprintf(logbuf+count, format, args );
 	//va_end(args);
+	//LOGR("AVERMA:dz_log_filep=%p, logbuf=%s, count=%d\n", dz_log_filep, logbuf, count+count2);
 	return dz_file_write(dz_log_filep, logbuf, count+count2, 0);
 }
 

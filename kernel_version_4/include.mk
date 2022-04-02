@@ -6,17 +6,17 @@ DZ_CURRENT_VERSION             := 1.0
 
 # Kernel Module Names of their corresponding engines
 # Dependency is represented as number sequence. Higher number value is dependent on lower number
-DZ_LOG_ENGINE_KERNEL_MODULE_NAME       := datumsoft_zaidstor_avm_1_B_log_engine_module
-DZ_INFRA_ENGINE_KERNEL_MODULE_NAME     := datumsoft_zaidstor_avm_2_B_infra_engine_module
-DZ_LAB_ENGINE_KERNEL_MODULE_NAME       := datumsoft_zaidstor_avm_3_B_lab_engine_module
-DZ_BEC_ENGINE_KERNEL_MODULE_NAME       := datumsoft_zaidstor_avm_4_B_bec_engine_module
-DZ_METADATA_ENGINE_KERNEL_MODULE_NAME  := datumsoft_zaidstor_avm_5_B_metadata_engine_module
-DZ_DEDUPE_ENGINE_KERNEL_MODULE_NAME    := datumsoft_zaidstor_avm_6_B_dedupe_engine_module
-DZ_ALIGNMENT_ENGINE_KERNEL_MODULE_NAME := datumsoft_zaidstor_avm_7_B_alignment_engine_module
-DZ_FEC_ENGINE_KERNEL_MODULE_NAME       := datumsoft_zaidstor_avm_8_B_fec_engine_module
-DZ_TARGET_ENGINE_KERNEL_MODULE_NAME    := datumsoft_zaidstor_avm_9_B_target_engine_module
-DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME    := datumsoft_zaidstor_avm_A_B_volume_engine_module
-DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME     := datumsoft_zaidstor_avm_B_B_sysfs_engine_module
+DZ_LOG_ENGINE_KERNEL_MODULE_NAME       := avm_1_log_engine_module
+DZ_INFRA_ENGINE_KERNEL_MODULE_NAME     := avm_2_infra_engine_module
+DZ_LAB_ENGINE_KERNEL_MODULE_NAME       := avm_3_lab_engine_module
+DZ_BEC_ENGINE_KERNEL_MODULE_NAME       := avm_4_bec_engine_module
+DZ_METADATA_ENGINE_KERNEL_MODULE_NAME  := avm_5_metadata_engine_module
+DZ_DEDUPE_ENGINE_KERNEL_MODULE_NAME    := avm_6_dedupe_engine_module
+DZ_ALIGNMENT_ENGINE_KERNEL_MODULE_NAME := avm_7_alignment_engine_module
+DZ_FEC_ENGINE_KERNEL_MODULE_NAME       := avm_8_fec_engine_module
+DZ_TARGET_ENGINE_KERNEL_MODULE_NAME    := avm_9_target_engine_module
+DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME    := avm_A_volume_engine_module
+DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME     := avm_B_sysfs_engine_module
 
 
-#Generated on Wed Mar 23 19:10:36 IST 2022
+#Generated on Fri Apr  1 16:08:40 IST 2022
