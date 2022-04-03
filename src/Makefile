@@ -189,53 +189,53 @@ log:
 ###############################################################################
 
 4:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile all)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 all)
 
 4all:4
 
 4c:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile clean)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 clean)
 
 4log:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _log)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _log)
 
 4lab:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _lab)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _lab)
 
 4infra:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _infra)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _infra)
 
 4lab:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _lab)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _lab)
 
 4bec:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _bec)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _bec)
 
 4md:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _md)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _md)
 
 4dedupe:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _dedupe)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _dedupe)
 
 4dd: 4dedupe
 
 4fec:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _fec)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _fec)
 
 4ae:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _ae)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _ae)
 
 4target:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _target)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _target)
 
 4volume:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _volume)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _volume)
 
 4sysfs:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile _sysfs)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _sysfs)
 
 4pkg:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile pkg)
+	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 pkg)
 
 
 4a:4
