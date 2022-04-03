@@ -1,0 +1,35 @@
+###################################################################################################################################
+#                                                                                                                                 #
+#								DEDUPE ENGINE (DDE) config tunables.                                                              #
+#        It is used when loading the config paramters from avm.conf file into kernel                                              #
+#                                                                                                                                 #
+###################################################################################################################################
+###################################################################################################################################
+# NAME							| TYPE	| OPS	|DEFAULT| Show Function  						| Store Function                  #
+# sysfs entries visible in  	|       |       |VALUE 	| This should already be) 				| Same limitation as              #
+# /sys/kernel/avm/          	|       |       |       | defined in header file,otherwise		| Show function                   #
+#                           	|       |       |       | compilation will fail)				|                                 #
+###################################################################################################################################
+#
+get_set_switch_dde				|U64	| BOTH	|		| avm_get_switch_dde					| avm_set_switch_dde
+#get_set_tunable_dde_pba_size	|U64	| BOTH	|		| avm_get_tunable_dde_pba_size			| avm_set_tunable_dde_pba_size
+#get_set_tunable_dde_lba_size	|U64	| BOTH	|		| avm_get_tunable_dde_lba_size			| avm_set_tunable_dde_lba_size
+#get_set_tunable_dde_hba_size	|U64	| BOTH	|		| avm_get_tunable_dde_hba_size			| avm_set_tunable_dde_hba_size
+#get_set_tunable_dde_rthreads	|U64	| BOTH	|		| avm_get_tunable_dde_read_threads		| avm_set_tunable_dde_read_threads
+#get_set_tunable_dde_wthreads	|U64	| BOTH	|		| avm_get_tunable_dde_write_threads		| avm_set_tunable_dde_write_threads
+#Entry for showing Dedupe Engine Counters/Timers
+get_dedupe_counters				|STRING	| SHOW	| 		| avm_get_dedupe_counters				| NULL
+#
+#To show lba table parameters for a given lba
+get_set_lba_table_index			|STRING	| BOTH	|		| avm_get_set_lba_table_index			| NULL
+#
+#To show lba table parameters for a given pba
+get_set_pba_table_index			|STRING	| BOTH	|		| avm_get_set_pba_table_index			| NULL
+get_set_lba_entry				|U64	| BOTH	|		| avm_get_lba_entry						| NULL
+get_set_pba_entry				|U64	| BOTH	|		| avm_get_pba_entry						| NULL
+#get_set_hba_entry				|U64	| BOTH	|		| avm_get_pba_entry_show				| NULL
+get_pba_table_size				|U64	| SHOW	|		| avm_pba_table_size_show				| NULL
+get_hash_table_size				|U64	| SHOW	|		| avm_get_hash_table_size				| NULL
+get_table_size					|STRING	| SHOW	|		| avm_get_table_size					| NULL
+#
+###################################################################################################################################

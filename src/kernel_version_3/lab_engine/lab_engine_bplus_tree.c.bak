@@ -1,0 +1,480 @@
+/*
+ * THIS  SOFTWARE   CONTAINS  CONFIDENTIAL  INFORMATION
+ * AND TRADE SECRETS OF N.L. VERMA / DATUMSOFT SYSTEMS.
+ * USE, DISCLOSURE, COPY OR  REPRODUCTION IS PROHIBITED
+ * WITHOUT  THE  PRIOR  EXPRESS  WRITTEN  PERMISSION OF
+ * NL VERMA / DATUMSOFT SYSTEMS.
+ */
+
+#include "prototypes.h"
+
+//static PDZ_BPLUS_TREE_NODE 	tree_root 	= NULL;
+static PPAGE			bptree_root = NULL;
+static PPAGE			head = NULL;
+
+RVOID dz_bplus_tree_print_node_lite(PDZ_BPLUS_TREE_NODE node)
+{
+	if (!node) {
+		LOGTGT("Node Print: BPlus Tree Node is NULL\n");
+		return;
+	}
+	LOGTGT("[ NODE      = %p]\n", node);
+	LOGTGT("[ NODE->key = %llu, NODE->Self = %hu ]\n", node->key, node->self);
+}
+
+RVOID dz_bplus_tree_print_node(PDZ_BPLUS_TREE_NODE node)
+{
+	BOOL flag = TRUE;
+	if (!node) {
+		LOGTGT("Node Print: BPlus Tree Node is NULL\n");
+		return;
+	}
+
+
+	if (flag == TRUE) {
+		LOGTGT("[---------BPLUS TREE NODE----------]\n");
+		LOGTGT("[                                  ]\n");
+		LOGTGT("[ NODE           		= %p]\n", node);
+		LOGTGT("[ NODE->key      		= %llu]\n", node->key);
+		LOGTGT("[ NODE->self      		= %hu]\n", node->self);
+		LOGTGT("[ NODE->parent     		= %u]\n", node->parent);
+		LOGTGT("[ NODE->left     		= %u] [%p]\n", node->left,  (node + node->left));
+		LOGTGT("[ NODE->right     		= %u] [%p]\n", node->right, (node + node->right));
+		if (node->leaf_node) {
+			LOGTGT("[ NODE->data     		= %ld]\n", (node->leaf_node->data));
+		} else {
+			LOGTGT("[ NODE is a Internal Node]\n");
+
+		}
+		//LOGTGT("[ NODE->leaf     = %d]\n", node->leaf);
+		//LOGTGT("[ NODE->data     = %ld]\n", node->data);
+		//LOGTGT("[ NODE->child    = %p]\n", node->child);
+		//LOGTGT("[ NODE->parent   		= %p]\n", node->parent);
+		//LOGTGT("[ NODE->child_first     = %p]\n", node->child_first);
+		//LOGTGT("[ NODE->child_last     	= %p]\n", node->child_last);
+		//LOGTGT("[----------------------------------]\n");
+	}
+}
+
+static PDZ_BPLUS_TREE_LEAF_NODE dz_bplus_tree_alloc_leaf_node(VOID)
+{
+    PDZ_BPLUS_TREE_LEAF_NODE node = DZ_BPLUS_TREE_ALLOC_LEAF_NODE();
+	if (!node) {
+		LOGTGTE("%s","Error, Unable to allocate memory for interval tree node\n");
+		RETURNN;
+	}
+	MEMSET(node);
+	return node;
+}
+
+static RVOID dz_bplus_tree_print_page(PPAGE root)
+{
+	int i = 0;
+	PVOID   					pagebuf= NULL;
+	PDZ_BPLUS_TREE_NODE 		pnode;
+	PDZ_BPLUS_METADATA_NODE		head_md			= NULL;			
+	pagebuf = kmap(root);
+	head_md = (PDZ_BPLUS_METADATA_NODE)(pagebuf + PAGE_SIZE - DZ_BPLUS_NODE_SIZE);
+
+	//for (i = 0; i < DZ_BPLUS_TREE_ORDER; i++) {
+	for (i = 0; i < head_md->alloc_cnt; i++) {
+
+		//LOGTGT("Printing Node at index %d\n", i);
+		pnode = &(((PDZ_BPLUS_TREE_NODE)pagebuf)[i]);
+		if (false) {
+			dz_bplus_tree_print_node_lite(pnode);
+		} else {
+			dz_bplus_tree_print_node(pnode);
+		}
+	}
+	kunmap(root);
+}
+
+RVOID dz_bplus_tree_traverse_page_postorder(PVOID root_pagebuf, PDZ_BPLUS_NODE root)
+{
+	PDZ_BPLUS_TREE_NODE 		pnode;
+
+	if (root->left) {
+		pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root->left]);
+		dz_bplus_tree_traverse_page_postorder(root_pagebuf, pnode);
+	}
+
+	if (root->right) {
+		pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root->right]);
+		dz_bplus_tree_traverse_page_postorder(root_pagebuf, pnode);
+	}
+
+	dz_bplus_tree_print_node(root);
+}
+
+RVOID dz_bplus_tree_traverse_page_preorder(PVOID root_pagebuf, PDZ_BPLUS_NODE root)
+{
+	PDZ_BPLUS_TREE_NODE 		pnode;
+
+	dz_bplus_tree_print_node(root);
+
+	if (root->left) {
+		pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root->left]);
+		dz_bplus_tree_traverse_page_preorder(root_pagebuf, pnode);
+	}
+
+	if (root->right) {
+		pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root->right]);
+		dz_bplus_tree_traverse_page_preorder(root_pagebuf, pnode);
+	}
+}
+
+
+//Inorder traversal of binary search tree which is present in single page
+//Note that here the left and right are stored as indexes (integers) and not pointers,
+//because page provides contiguous memory space of 4096 bytes
+//But left and right nodes are extracted by using those indexes;
+static RVOID dz_bplus_tree_traverse_page_inorder(PVOID root_pagebuf, PDZ_BPLUS_NODE root)
+{
+	PDZ_BPLUS_TREE_NODE 		pnode;
+
+	if (root->left) {
+		pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root->left]);
+		//This pnode is basically a left node connected to root
+		dz_bplus_tree_traverse_page_inorder(root_pagebuf, pnode);
+	}
+	dz_bplus_tree_print_node(root);
+
+	if (root->right) {
+		pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root->right]);
+		//This pnode is basically a right node connected to root
+		dz_bplus_tree_traverse_page_inorder(root_pagebuf, pnode);
+	}
+}
+
+static RVOID dz_bplus_tree_traverse_page(PPAGE root)
+{
+	PVOID   					root_pagebuf= NULL;
+	PDZ_BPLUS_TREE_NODE 		root_node;
+	root_pagebuf = kmap(root);
+
+	//Get the first node address
+	root_node = (PDZ_BPLUS_TREE_NODE)root_pagebuf;
+
+	dz_bplus_tree_traverse_page_inorder(root_pagebuf, root_node);
+	kunmap(root);
+}
+
+#define PUSH_STACK(arg_stack, arg_stack_idx, arg_element)				\
+	arg_stack[ATOMIC_READ(arg_stack_idx)] = arg_element;		\
+	ATOMIC_INC(arg_stack_idx);									\
+
+#define POP_STACK(arg_stack, arg_stack_idx, arg_element)				\
+	arg_element = arg_stack[ATOMIC_READ(arg_stack_idx) - 1 ]	\
+	arg_stack[ATOMIC_READ(arg_stack_idx) - 1] = 0;				\
+	ATOMIC_DEC(arg_stack_idx);									
+
+//Return Right Page after splitting the bst present in PAGE
+//First do inorder traversal. Visualize it as a sorted list
+//Go to the middle of the list.
+//That middle of the list is the bst node where splitting is required
+//Return that node index
+PPAGE dz_bplus_tree_split(PPAGE root_page)
+{
+	INT brk_cnt = 0;
+	PVOID   root_pagebuf	= NULL;
+	BPNODE	*pnode 			= NULL;
+	BPNODE 	*root_node;
+	BOOL	done			= FALSE;
+	//USHORT is used because all the internal elements in bst are stored at USHORT index
+	USHORT 	*stack 			= NULL;
+	
+	ATOMIC 	stack_idx;
+
+	//Middle element will be at alloc cnt of 125/2  + 1 i.e. 63
+	UINT	middle_idx =  (DZ_BPLUS_TREE_MAX_KEYS/2) + 1;
+	LOGTGT("Middle Index = %u\n", middle_idx);
+
+	//Now Traverse the bst tree iteratively using a stack created by kmalloc
+	//USHORT is taken because it is the type of left,right and parent in BPNODE
+	stack = dz_kmalloc(middle_idx, sizeof(USHORT));
+	ATOMIC_SET(stack_idx, 0);
+	//Check for NULLs
+	
+
+	//Get the first node address
+	root_pagebuf = kmap(root_page);
+	root_node = (PDZ_BPLUS_TREE_NODE)root_pagebuf;
+
+	//Push the root node index onto stack
+	stack[ATOMIC_READ(stack_idx)] = 0;
+	LOGTGT("Pushed Node Key = %llu, Stack Idx = %d\n", root_node->key, ATOMIC_READ(stack_idx));
+
+	LOGTGT("Pushed Node Key = %llu, Stack[%d][%d], root_node->left = %hu, root_node->right = %hu \n",
+	root_node->key, ATOMIC_READ(stack_idx),stack[ATOMIC_READ(stack_idx)], root_node->left, root_node->right);
+
+	ATOMIC_INC(stack_idx);
+
+	while(!done) {
+
+		if (root_node->left) {
+			pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[root_node->left]);
+			stack[ATOMIC_READ(stack_idx)] = root_node->left;
+
+			//LOGTGT("Pushed Node Key = %llu, Stack Idx = %d\n", pnode->key, ATOMIC_READ(stack_idx));
+
+			LOGTGT("Pushed Node Key = %llu, Stack[%d][%d], pnode->left = %hu, pnode->right = %hu \n",
+			pnode->key, ATOMIC_READ(stack_idx),stack[ATOMIC_READ(stack_idx)], pnode->left, pnode->right);
+
+			ATOMIC_INC(stack_idx);
+			root_node = pnode;
+		} else {
+
+			if (ATOMIC_READ(stack_idx)) { //Check if stack is not empty
+				//Pop the last element
+				pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[stack[ATOMIC_READ(stack_idx) - 1 ]]);
+
+				LOGTGT("Popped Node Key = %llu, Stack[%d][%d], pnode->left = %hu, pnode->right = %hu \n",
+				pnode->key, ATOMIC_READ(stack_idx)-1,stack[ATOMIC_READ(stack_idx)-1], pnode->left, pnode->right);
+
+				stack[ATOMIC_READ(stack_idx) - 1] = 0;
+				ATOMIC_DEC(stack_idx);
+
+				while(pnode->right == 0) {
+					pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[stack[ATOMIC_READ(stack_idx) - 1]]);
+
+					LOGTGT("Next Popped Node Key = %llu, Stack[%d][%d], pnode->left = %hu, pnode->right = %hu \n",
+					pnode->key, ATOMIC_READ(stack_idx)-1,stack[ATOMIC_READ(stack_idx)-1], pnode->left, pnode->right);
+
+					stack[ATOMIC_READ(stack_idx)] = 0;
+					ATOMIC_DEC(stack_idx);
+
+					if (ATOMIC_READ(stack_idx) == 0) { //Check if stack is not empty
+						break;
+					}
+				}
+				pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[pnode->right]);
+				stack[ATOMIC_READ(stack_idx)] = pnode->right;
+				//LOGTGT("Next Pushed Node Key = %llu, Stack Idx = %d\n", pnode->key, ATOMIC_READ(stack_idx));
+
+
+				LOGTGT("Next Pushed Node Key = %llu, Stack[%d][%d], pnode->left = %hu, pnode->right = %hu \n",
+				pnode->key, ATOMIC_READ(stack_idx),stack[ATOMIC_READ(stack_idx)], pnode->left, pnode->right);
+
+				ATOMIC_INC(stack_idx);
+				root_node = pnode;
+
+			} else {
+				done = TRUE;
+			}
+		}
+		//Stop for accidental overflowing
+		brk_cnt++;
+
+		if (brk_cnt == 255) {
+			break;
+		}
+	
+	}
+	return NULL;
+
+}
+//Since we are allocating from page, so we dont want recursion, because
+//it will unnecessarily lead to multiple kmap/kunmap functions.
+//Insted we will create binary tree iteratively.
+//Also better not to keep pointer as left or right.
+//We will keep the index in page as left or right
+//A mixture of construction of bst in 4k total array size where each element
+//is of 64 bytes size.
+
+INT dz_bplus_tree_insert_key_data(PPAGE root_page, KEY key, PDZ_BPLUS_LEAF_NODE data )
+{
+	PDZ_BPLUS_TREE_NODE 		pnode;
+	PDZ_BPLUS_TREE_NODE			root = NULL;
+	PDZ_BPLUS_TREE_NODE			parent = NULL;
+	PVOID   					root_pagebuf= NULL;
+	PDZ_BPLUS_METADATA_NODE		head_md			= NULL;			
+
+
+	root_pagebuf = kmap(root_page);
+
+	//Get Metadata header address
+	head_md = (PDZ_BPLUS_METADATA_NODE)(root_pagebuf + PAGE_SIZE - DZ_BPLUS_NODE_SIZE);
+
+	PRINT_UINT(head_md->alloc_cnt);
+	if (head_md->alloc_cnt == DZ_BPLUS_TREE_MAX_KEYS) {
+		kunmap(root_page);
+		//Overflow happens
+		return BPLUS_NODE_FULL;
+	}
+	
+
+	if (head_md->alloc_cnt == 0) { //Root is not yet present. This is the first time
+
+		//Set Data
+		root = (PDZ_BPLUS_TREE_NODE)root_pagebuf;
+		MEMSET(root);	//It will reset only node size
+		root->key 		= key;
+		root->self		= 0;
+		root->left 		= 0;
+		root->right 	= 0;
+		root->parent 	= 0; //Special case. Root is at index zero
+		root->leaf_node	= data; //Data is always set at root
+
+		//Update Metadata
+		head_md->alloc_cnt++;
+		kunmap(root_page);
+		return SUCCESS;
+	}
+
+	//Iteratively inserting the node in this tree to avoid recursion in kernel
+	//because kernel stack is limited
+	//Root will always be at starting position of the page
+	root = (PDZ_BPLUS_TREE_NODE)root_pagebuf;
+
+	pnode = root;
+
+	while(true) {
+		if(key < pnode->key) {
+			parent = pnode;
+			if (pnode->left == 0) {
+				break;
+			}
+			pnode = &(root[pnode->left]);
+		} else {
+			parent = pnode;
+			if (pnode->right == 0) {
+				break;
+			}
+			pnode = &(root[pnode->right]);
+		}
+	}
+
+	//Allocate a new internal node from the page.
+	//alloc_cnt will be used to serve that purpose
+	pnode = &(((PDZ_BPLUS_TREE_NODE)root_pagebuf)[head_md->alloc_cnt]);
+
+
+	//Update Data
+	MEMSET(pnode);
+	pnode->key = key;
+	pnode->self = head_md->alloc_cnt;
+	pnode->data = data;
+	pnode->parent = parent->key;
+
+	if(key < parent->key)
+         parent->left = head_md->alloc_cnt;
+      else
+         parent->right = head_md->alloc_cnt;
+
+	//Update Metadata
+	head_md->alloc_cnt++;
+	kunmap(root_page);
+
+	return SUCCESS; //Always Top of the tree root
+}
+
+static PVOID	dz_bplus_tree_insert_data(PPAGE root_page, PDZ_BPLUS_LEAF_NODE data )
+{
+	INT ret = SUCCESS;
+	ret = dz_bplus_tree_insert_key_data(root_page, data->key, data );
+	if (ret == BPLUS_NODE_FULL) {
+		//We need to split the tree now
+		/*
+		PPAGE parent_page;
+		PVOID parent_pagebuf= NULL;
+		parent_page = dz_page_alloc();
+		parent_pagebuf = kmap(parent_page);
+		memset(parent_pagebuf, 0, PAGE_SIZE);
+		kunmap(parent_page);
+		bptree_root = parent_page;
+		*/
+		LOGTGT("OverFlow occured\n");
+	}
+
+	return NULL;
+}
+
+static PPAGE dz_bplus_tree_insert(PPAGE root_page, PDZ_BPLUS_LEAF_NODE data)
+{
+	if (root_page == NULL) {
+		PVOID   	pagebuf= NULL;
+		root_page = dz_page_alloc();
+		pagebuf = kmap(root_page);
+		memset(pagebuf, 0, PAGE_SIZE);
+		kunmap(root_page);
+		bptree_root = root_page;
+	}
+
+	dz_bplus_tree_insert_data(root_page, data);
+
+	return root_page; //Always Top of the tree root
+}
+
+static PPAGE dz_bplus_tree_delete(PPAGE root, KEY key)
+{
+
+	return root; //Always Top of the tree root
+}
+
+static PPAGE dz_bplus_tree_search(PPAGE root, KEY key)
+{
+
+
+	return root; //Always Top of the tree root
+}
+
+	
+
+BOOL dz_process_lab_engine_bplus_tree(LBA offset, UINT iosize)
+{
+	PDZ_BPLUS_TREE_LEAF_NODE leaf = NULL;
+	head = bptree_root;
+
+	// Last two arguments are key and data
+	INSERT_KEY(leaf, bptree_root, 101, 10101);
+	PRINT_POINTER(leaf);
+	INSERT_KEY(leaf, bptree_root, 95, 95101);
+	PRINT_POINTER(leaf);
+	INSERT_KEY(leaf, bptree_root, 55, 55101);
+	PRINT_POINTER(leaf);
+	INSERT_KEY(leaf, bptree_root, 157, 157101);
+	PRINT_POINTER(leaf);
+	INSERT_KEY(leaf, bptree_root, 235, 235101);
+	PRINT_POINTER(leaf);
+	/*
+	leaf = dz_bplus_tree_alloc_leaf_node();
+	LOG("First Node Created\n");
+	leaf->key = 101;
+	leaf->data = 10101;
+	dz_bplus_tree_insert(bptree_root, leaf);
+	LOG("First Node Inserted\n");
+
+	leaf = dz_bplus_tree_alloc_leaf_node();
+	leaf->key = 95;
+	leaf->data = 95101;
+	dz_bplus_tree_insert(bptree_root, leaf);
+
+	leaf = dz_bplus_tree_alloc_leaf_node();
+	leaf->key = 55;
+	leaf->data = 55101;
+	dz_bplus_tree_insert(bptree_root, leaf);
+
+	leaf = dz_bplus_tree_alloc_leaf_node();
+	leaf->key = 157;
+	leaf->data = 157101;
+	dz_bplus_tree_insert(bptree_root, leaf);
+	*/
+
+
+	dz_bplus_tree_search(bptree_root, leaf->key);
+	dz_bplus_tree_delete(bptree_root, leaf->key);
+	LOGTGT("Printing Page in Sequential Order\n");
+	dz_bplus_tree_print_page(bptree_root);
+	LOGTGT("Printing Page in BST In-Order Traversal\n");
+	dz_bplus_tree_traverse_page(bptree_root);
+	LOGTGT("DZ_BPLUS_NODE_SIZE     = %lu\n", DZ_BPLUS_NODE_SIZE);
+	LOGTGT("DZ_BPLUS_TREE_ORDER    = %lu\n", DZ_BPLUS_TREE_ORDER);
+	LOGTGT("DZ_BPLUS_TREE_MAX_KEYS = %lu\n", DZ_BPLUS_TREE_MAX_KEYS);
+	LOGTGT("sizeof(BPNODE) =%lu\n", sizeof(BPNODE));
+	LOGTGT("sizeof(BPMTDT) =%lu\n", sizeof(BPMTDT));
+	dz_bplus_tree_split(bptree_root);
+	RETURNT;
+}
+
+EXPORT_SYMBOL(dz_process_lab_engine_bplus_tree);

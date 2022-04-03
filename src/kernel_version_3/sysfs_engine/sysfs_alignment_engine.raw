@@ -1,0 +1,24 @@
+###################################################################################################################################
+#                                                                                                                                 #
+#								ALIGNMENT ENGINE (DAE) config tunables.                                                           #
+# It is used when loading the config paramters from avm.conf file into kernel                                                     #
+#                                                                                                                                 #
+###################################################################################################################################
+###################################################################################################################################
+# NAME							| TYPE	| OPS	|DEFAULT| Show Function  						| Store Function                  #
+# sysfs entries visible in  	|       |       |VALUE 	| This should already be) 				| Same limitation as              #
+# /sys/kernel/avm/          	|       |       |       | defined in header file,otherwise		| Show function                   #
+#                           	|       |       |       | compilation will fail)				|                                 #
+###################################################################################################################################
+#
+get_set_switch_dae				|U64	| BOTH	|		| avm_get_switch_dae					| avm_set_switch_dae
+get_set_switch_dae_mbr			|U64	| BOTH	|		| avm_get_switch_dae_mbr				| avm_set_switch_dae_mbr
+get_set_switch_dae_mbw			|U64	| BOTH	|		| avm_get_switch_dae_mbw				| avm_set_switch_dae_mbw
+get_set_switch_dae_pbr			|U64	| BOTH	|		| avm_get_switch_dae_pbr				| avm_set_switch_dae_pbr
+get_set_switch_dae_pbw			|U64	| BOTH	|		| avm_get_switch_dae_pbw				| avm_set_switch_dae_pbw
+get_set_tunable_dae_rthreads	|U64	| BOTH	|		| avm_get_tunable_dae_read_threads		| avm_set_tunable_dae_read_threads
+get_set_tunable_dae_wthreads	|U64	| BOTH	|		| avm_get_tunable_dae_write_threads		| avm_set_tunable_dae_write_threads
+#Entry for showing Alignment Engine Counters/Timers
+get_align_counters				|STRING	| SHOW	| 		| avm_get_align_counters				| NULL
+#
+###################################################################################################################################

@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+echo "$1" > /sys/kernel/fvm/display_volume 
+cat /sys/kernel/fvm/display_volume 

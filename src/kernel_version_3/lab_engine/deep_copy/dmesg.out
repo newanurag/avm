@@ -1,0 +1,63 @@
+[13349.118355] [DeepCopy]:329:Tree Memory Allocation Count = 14
+[13349.118362] [DeepCopy]:332: ______________________________________________________ 
+[13349.118365] [DeepCopy]:333:|                                                      |
+[13349.118367] [DeepCopy]:334:|           Tree DeepCopy Module UnLoaded              |
+[13349.118370] [DeepCopy]:335:|______________________________________________________|
+[13349.121889] [DeepCopy]:312: ______________________________________________________ 
+[13349.121896] [DeepCopy]:313:|                                                      |
+[13349.121899] [DeepCopy]:314:|           Tree DeepCopy Module Loaded                |
+[13349.121902] [DeepCopy]:315:|______________________________________________________|
+[13349.121905] [DeepCopy]:61:MAP Created of size 32
+[13349.121908] [DeepCopy]:124:QUEUE Created of size 32
+[13349.121911] [DeepCopy]:194:##########################################################
+[13349.121913] [DeepCopy]:195:                 Original Tree Begin                      
+[13349.121916] [DeepCopy]:196:##########################################################
+[13349.121919] [DeepCopy]:200:Original: Tree Created
+[13349.121921] [DeepCopy]:205:Original: Printing Original Tree Root Node
+[13349.121925] [DeepCopy]:169:Original:Node->self         = ffff8800a648d280
+[13349.121927] [DeepCopy]:171:Original:Node->data         = 101
+[13349.121930] [DeepCopy]:172:Original:Node->cycle        = ffff8800a648d500
+[13349.121933] [DeepCopy]:174:Original:Node->cycle->data  = 201000
+[13349.121936] [DeepCopy]:177:Original:Node->children[0] = ffff8800a648d840
+[13349.121939] [DeepCopy]:177:Original:Node->children[1] = ffff8800a648d680
+[13349.121941] [DeepCopy]:177:Original:Node->children[2] = ffff8800a648d940
+[13349.121944] [DeepCopy]:180:Original:Tree: No. of Allocated Nodes = 7
+[13349.121946] [DeepCopy]:207:Original: Printing Original Nodes at all levels 
+[13349.121949] [DeepCopy]:198:qcnt = 1 i.e. @ Level = 0
+[13349.121953] [DeepCopy]:205:[O] Self = ffff8800a648d280, Data = 101 Cycle = 201000
+[13349.121955] [DeepCopy]:198:qcnt = 3 i.e. @ Level = 1
+[13349.121958] [DeepCopy]:205:[O] Self = ffff8800a648d840, Data = 101000 Cycle = 101
+[13349.121961] [DeepCopy]:207:[O] Self = ffff8800a648d680 Data = 101100
+[13349.121964] [DeepCopy]:207:[O] Self = ffff8800a648d940 Data = 101200
+[13349.121967] [DeepCopy]:198:qcnt = 3 i.e. @ Level = 2
+[13349.121970] [DeepCopy]:207:[O] Self = ffff8800a648d500 Data = 201000
+[13349.121972] [DeepCopy]:207:[O] Self = ffff8800a648db80 Data = 201100
+[13349.121975] [DeepCopy]:207:[O] Self = ffff8800a648dcc0 Data = 201200
+[13349.121978] [DeepCopy]:198:qcnt = 0 i.e. @ Level = 3
+[13349.121980] [DeepCopy]:209:Original: Original Tree Memory Allocation Count = 7
+[13349.121983] [DeepCopy]:211:##########################################################
+[13349.121985] [DeepCopy]:212:                DeepCopy Begin              
+[13349.121987] [DeepCopy]:213:##########################################################
+[13349.121992] [DeepCopy]:217:DeepCopy: Tree Created
+[13349.121995] [DeepCopy]:218:DeepCopy: Printing DeepCopy Tree Root Node
+[13349.121997] [DeepCopy]:169:DeepCopy:Node->self         = ffff8800a648dec0
+[13349.122000] [DeepCopy]:171:DeepCopy:Node->data         = 101
+[13349.122002] [DeepCopy]:172:DeepCopy:Node->cycle        = ffff8800a648d240
+[13349.122005] [DeepCopy]:174:DeepCopy:Node->cycle->data  = 201000
+[13349.122008] [DeepCopy]:177:DeepCopy:Node->children[0] = ffff8800a648dc80
+[13349.122011] [DeepCopy]:177:DeepCopy:Node->children[1] = ffff8800a648d9c0
+[13349.122014] [DeepCopy]:177:DeepCopy:Node->children[2] = ffff8800a648d340
+[13349.122016] [DeepCopy]:180:DeepCopy:Tree: No. of Allocated Nodes = 14
+[13349.122019] [DeepCopy]:220:DeepCopy: Printing DeepCopy Nodes at all levels 
+[13349.122022] [DeepCopy]:198:qcnt = 1 i.e. @ Level = 0
+[13349.122025] [DeepCopy]:205:[C] Self = ffff8800a648dec0, Data = 101 Cycle = 201000
+[13349.122027] [DeepCopy]:198:qcnt = 3 i.e. @ Level = 1
+[13349.122030] [DeepCopy]:205:[C] Self = ffff8800a648dc80, Data = 101000 Cycle = 101
+[13349.122033] [DeepCopy]:207:[C] Self = ffff8800a648d9c0 Data = 101100
+[13349.122036] [DeepCopy]:207:[C] Self = ffff8800a648d340 Data = 101200
+[13349.122038] [DeepCopy]:198:qcnt = 3 i.e. @ Level = 2
+[13349.122041] [DeepCopy]:207:[C] Self = ffff8800a648d240 Data = 201000
+[13349.122044] [DeepCopy]:207:[C] Self = ffff8800a648d780 Data = 201100
+[13349.122047] [DeepCopy]:207:[C] Self = ffff8800a648da40 Data = 201200
+[13349.122049] [DeepCopy]:198:qcnt = 0 i.e. @ Level = 3
+[13349.122052] [DeepCopy]:224:DeepCopy: DeepCopy Tree Memory Allocation Count = 14

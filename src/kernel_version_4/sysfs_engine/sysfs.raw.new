@@ -1,0 +1,99 @@
+############################################################################################################################
+# NAME						| TYPE		| OPS	|DEFAULT VALUE	|	Show Function  						| Store Function
+# sysfs entries visible in  |           |       |               |   (This should already be) 			| Same limitation as
+# /sys/kernel/avm/          |           |       |               |   defined in header file, otherwise 	| Show function
+#                           |           |       |               |   compilation will fail)				|
+###########################################################################################################################
+get_set_device_size_bytes	|STRING		| BOTH	| 				|	sys_dz_get_set_device_size_bytes	| NULL
+get_set_device_size_blocks	|STRING		| BOTH	| 				|	sys_dz_get_set_device_size_blocks	| NULL
+get_set_volume_info			|STRING		| BOTH	| 				|	sys_dz_get_set_volume_info			| NULL
+get_target_name				|STRING		| SHOW	|				|	sys_dz_device_name_show				| NULL
+get_backstore_name			|STRING		| SHOW	|				|	sys_dz_backstore_name_show			| NULL
+get_pba_table_size			|U64		| SHOW	|				|	sys_dz_pba_table_size_show			| NULL
+get_hash_table_size			|U64		| SHOW	|				|	sys_dz_get_hash_table_size			| NULL
+get_table_size				|STRING		| SHOW	|				|	sys_dz_get_table_size				| NULL
+get_free_page_count			|U64		| SHOW	|				|	sys_dz_get_free_page_count			| NULL
+get_list_of_volumes			|STRING		| SHOW	|				|	sys_dz_get_list_of_volumes			| NULL
+get_list_of_volumes_short	|STRING		| SHOW	|				|	sys_dz_get_list_of_volumes_short	| NULL
+get_list_of_objects			|STRING		| SHOW	|				|	sys_dz_get_list_of_objects			| NULL
+get_version					|STRING		| SHOW	|				|	sys_dz_get_version					| NULL
+get_set_passthrough_mode	|U64		| BOTH	|				|	sys_dz_get_passthrough_mode		| sys_dz_set_passthrough_mode
+get_set_passthrough_read	|U64		| BOTH	|				|	sys_dz_get_passthrough_read		| sys_dz_set_passthrough_read
+get_set_passthrough_write	|U64		| BOTH	|				|	sys_dz_get_passthrough_write	| sys_dz_set_passthrough_write
+get_set_switch_fec			|U64		| BOTH	|				|	sys_dz_get_switch_fec			| sys_dz_set_switch_fec
+get_set_switch_bec			|U64		| BOTH	|				|	sys_dz_get_switch_bec			| sys_dz_set_switch_bec
+get_set_switch_dde			|U64		| BOTH	|				|	sys_dz_get_switch_dde			| sys_dz_set_switch_dde
+get_set_switch_dae			|U64		| BOTH	|				|	sys_dz_get_switch_dae			| sys_dz_set_switch_dae
+get_set_switch_dae_mbr		|U64		| BOTH	|				|	sys_dz_get_switch_dae_mbr		| sys_dz_set_switch_dae_mbr
+get_set_switch_dae_mbw		|U64		| BOTH	|				|	sys_dz_get_switch_dae_mbw		| sys_dz_set_switch_dae_mbw
+get_set_switch_dae_pbr		|U64		| BOTH	|				|	sys_dz_get_switch_dae_pbr		| sys_dz_set_switch_dae_pbr
+get_set_switch_dae_pbw		|U64		| BOTH	|				|	sys_dz_get_switch_dae_pbw		| sys_dz_get_switch_dae_pbw
+#Entry for showing memory comsumption by all engines and AVM target
+get_memory_info				|STRING		| SHOW	|				|	sys_dz_get_memory_info				| NULL
+#Entry for showing Metadata Engine Counters/Timers
+get_metadata_counters		|STRING		| SHOW	| 				|	sys_dz_get_metadata_countersa		| NULL
+#Entry for showing FEC Engine Counters/Timers
+get_fec_counters			|STRING		| SHOW	| 				|	sys_dz_get_fec_counters				| NULL
+#Entry for showing Alignment Engine Counters/Timers
+get_align_counters			|STRING		| SHOW	| 				|	sys_dz_get_align_counters			| NULL
+#Entry for showing BEC Engine Counters/Timers
+get_bec_counters			|STRING		| SHOW	| 				|	sys_dz_get_bec_counters				| NULL
+#Entry for showing Dedupe Engine Counters/Timers
+get_dedupe_counters			|STRING		| SHOW	| 				|	sys_dz_get_dedupe_counters			| NULL
+#Entry for showing All Engine Counters/Timers
+get_all_counters			|STRING		| SHOW	|				|	sys_dz_get_all_counters				| NULL
+#Entry for showing superblock structure
+get_superblock				|STRING		| SHOW	|				|	sys_dz_get_superblock				| NULL
+#To show lba table parameters for a given lba
+get_set_lba_table_index		|STRING		| BOTH	|				|	sys_dz_get_set_lba_table_index		| NULL
+#To show lba table parameters for a given pba
+get_set_pba_table_index		|STRING		| BOTH	|				|	sys_dz_get_set_pba_table_index		| NULL
+#
+#To show sizeof datastructures and data types
+get_sizeof_datastructures	|STRING		| SHOW	|				|	sys_dz_get_sizeof_datastructures	| NULL
+#
+#
+#
+write						|INTEGER	| STORE	| 				|	NULL								| NULL
+read						|INTEGER	| SHOW	|				|	NULL								| NULL
+lba_entry					|U64		| BOTH	|				|	sys_dz_lba_entry_show				| NULL
+pba_entry					|U64		| BOTH	|				|	sys_dz_pba_entry_show				| NULL
+#Test and Set bi
+tasb						|U64		| BOTH	|				|	sys_dz_tasb_show					| NULL
+#Entries for issuing write IOs on /dev/mapper/AISA
+#issue_write_io_on_device, issue_write_io_at_sector, issue_write_io_with_size acts
+#as input parameters for issuing a write IO on the device
+#issue_write_io is the one which actually issues WRITE IO thats why its action is 
+#defined with function sys_dz_write_io_show() 
+issue_write_io_on_device	|STRING		| BOTH	|				|	NULL								| NULL
+issue_write_io_at_sector	|U64		| BOTH	|				|	NULL								| NULL
+issue_write_io_with_size	|INTEGER	| BOTH	|				|	NULL								| NULL
+issue_write_io				|INTEGER	| SHOW	|				|	sys_dz_write_io_show				| NULL
+#Entries for issuing read IOs on /dev/mapper/AISA. 
+#issue_read_io_on_device, issue_read_io_at_sector, issue_read_io_with_size acts
+#as input parameters for issuing a read IO on the device
+#issue_read_io is the one which actually issues READ IO thats why its action is 
+#defined with function sys_dz_read_io_show() 
+issue_read_io_on_device		|STRING		| BOTH	|				|	NULL								| NULL	
+issue_read_io_at_sector		|U64		| BOTH	|				|	NULL								| NULL
+issue_read_io_with_size		|INTEGER	| BOTH	|				|	NULL								| NULL
+issue_read_io				|INTEGER	| SHOW	|				|	sys_dz_read_io_show					| NULL
+###########################################################################################################################
+#
+#Entries for issuing Zeros on /dev/mapper/AISA. 
+#issue_zero_io_on_device, issue_zero_io_at_sector, issue_zero_io_with_size acts
+#as input parameters for issuing a read IO on the device
+#issue_zero_io is the one which actually issues READ IO thats why its action is 
+#defined with function sys_dz_read_io_show() 
+#
+###########################################################################################################################
+issue_zero_io_on_device		|STRING		| BOTH	|				|	NULL								| NULL
+issue_zero_io_at_sector		|U64		| BOTH	|				|	NULL								| NULL
+issue_zero_io_with_size		|INTEGER	| BOTH	|				|	NULL								| NULL
+issue_zero_io				|INTEGER	| SHOW	|				|	sys_dz_zero_io_show					| NULL
+#Entries for issuing write IOs but verify with read on /dev/mapper/AISA
+write_verify_io				|INTEGER	|SHOW	| 				|	sys_dz_write_verify_io_show			| NULL
+#Entry for showing Dedupe Engine Counters/Timers
+dedupe						|U64		|SHOW	| 				|	sys_dedupe_show						| NULL
+#Entry for showing BEC Engine Counters/Timers
+bec							|U64		|SHOW	| 				|	sys_bec_show						| NULL

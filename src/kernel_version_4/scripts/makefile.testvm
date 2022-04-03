@@ -1,0 +1,103 @@
+AVM_RPM_PACKAGE      = "zaidstor_databank-1.1.a_3.10-101.el7.centos.x86_64.rpm"
+AVM_START_SCRIPT     = "/opt/DATUMSOFT/zaidstor_databank/avm/scripts/avm_start.sh"
+AVM_STOP_SCRIPT      = "/opt/DATUMSOFT/zaidstor_databank/avm/scripts/avm_stop.sh"
+AVM_UNINSTALL_SCRIPT = "/opt/DATUMSOFT/zaidstor_databank/avm/scripts/avm_uninstall.sh"
+AVM_MODLOAD_SCRIPT   = "/opt/DATUMSOFT/zaidstor_databank/avm/scripts/avm_load_modules.sh"
+AVM_MODUNLOAD_SCRIPT = "/opt/DATUMSOFT/zaidstor_databank/avm/scripts/avm_unload_modules.sh"
+AVM_PANIC_SCRIPT     = "/opt/DATUMSOFT/zaidstor_databank/avm/scripts/crash_kernel.sh"
+
+all:
+	@echo "=============================================="
+	@echo "TestVM Commands"
+	@echo "=============================================="
+	@echo
+	@echo "1) Install/Uninstall/ReInstall ZAIDSTOR AVM RPM Package"
+	@echo "# make install"
+	@echo "# make uinstall"
+	@echo "# make reinstall"
+	@echo
+	@echo "2) Start/Stop/Restart ZAIDSTOR AVM"
+	@echo "# make start"
+	@echo "# make stop"
+	@echo "# make restart"
+	@echo
+	@echo "3) Load/Unload ZAIDSTOR AVM Kernel Modules"
+	@echo "# make loadm"
+	@echo "# make unloadm"
+	@echo "# make reload"
+	@echo
+	@echo "4) Start Crash utility for Core Dump Analysis"
+	@echo "# make crash"
+	@echo
+	@echo "5) Force Kernel Panic. It will generate a core dump file"
+	@echo "# make panic"
+	@echo
+	@echo "6) Show Attached Disks to this VM "
+	@echo "# make disks"
+	@echo
+	@echo "7) Shutdown/Reboot this Virtual Machine"
+	@echo "# make shut"
+	@echo "# make reboot"
+	@echo
+	@echo "=============================================="
+
+
+start:startavm
+stop:stopavm
+
+restart:stop start
+
+crash:
+	@crash /usr/lib/debug/lib/modules/`uname -r`/vmlinux `ls -d /var/crash/* |tail -1`/vmcore
+
+startavm:
+	@[ -f ${AVM_START_SCRIPT} ] &&  ${AVM_START_SCRIPT} || echo ZAIDSTOR AVM Package Not Installed
+
+stopavm:
+	@[ -f ${AVM_STOP_SCRIPT} ] &&  ${AVM_STOP_SCRIPT} || echo ZAIDSTOR AVM Package Not Installed
+
+install:
+	@rpm -ivh  /home/aisa/${AVM_RPM_PACKAGE}
+
+
+uninstall:
+	@[ -f ${AVM_UNINSTALL_SCRIPT} ] &&  ${AVM_UNINSTALL_SCRIPT} || echo ZAIDSTOR AVM Package Not Installed
+
+reinstall:uninstall install
+
+gocr:
+	@ls -l /var/crash
+	@cd /var/crash/
+
+loadm:
+	@[ -f ${AVM_MODLOAD_SCRIPT} ] &&  ${AVM_MODLOAD_SCRIPT} || echo ZAIDSTOR AVM Package Not Installed
+
+unloadm:
+	@[ -f ${AVM_MODUNLOAD_SCRIPT} ] &&  ${AVM_MODUNLOAD_SCRIPT} || echo ZAIDSTOR AVM Package Not Installed
+
+reload:unloadm loadm
+
+goin:
+	@cd /opt/DATUMSOFT/zaidstor_databank/avm/
+
+panic:
+	@[ -f ${AVM_PANIC_SCRIPT} ] &&  ${AVM_PANIC_SCRIPT} || echo ZAIDSTOR AVM Package Not Installed
+
+p:panic
+
+disks:
+	@lsscsi
+
+disk:disks
+
+shut:
+	@shutdown now
+
+shutdown:shut
+
+s:shut
+
+reboot:
+	@shutdown -r now
+
+r:reboot

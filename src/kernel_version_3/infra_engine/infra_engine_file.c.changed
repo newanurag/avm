@@ -1,0 +1,105 @@
+/*
+ * THIS  SOFTWARE   CONTAINS  CONFIDENTIAL  INFORMATION
+ * AND TRADE SECRETS OF N.L. VERMA / DATUMSOFT SYSTEMS.
+ * USE, DISCLOSURE, COPY OR  REPRODUCTION IS PROHIBITED
+ * WITHOUT  THE  PRIOR  EXPRESS  WRITTEN  PERMISSION OF
+ * NL VERMA / DATUMSOFT SYSTEMS.
+ */
+
+#include "prototypes.h"
+
+struct file *dz_file_open(const char *path, INT flags, INT rights) 
+{
+	struct file *filp = NULL;
+	mm_segment_t oldfs;
+	INT err = 0;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+	oldfs = get_fs();
+	set_fs(get_ds());
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+	oldfs = get_fs();
+	set_fs( KERNEL_DS );
+#else
+	oldfs = force_uaccess_begin();
+#endif
+
+	filp = filp_open(path, flags, rights);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+	set_fs(oldfs);
+#else
+	force_uaccess_end(oldfs);
+#endif
+	if (IS_ERR(filp)) {
+		err = PTR_ERR(filp);
+		RETURNN;
+	}
+	return filp;
+}
+EXPORT_SYMBOL(dz_file_open);
+
+RVOID dz_file_close(struct file *file) 
+{
+	filp_close(file, NULL);
+}
+EXPORT_SYMBOL(dz_file_close);
+
+RINT dz_file_read(struct file *file, ULONGLONG offset, UCHAR *data, UINT size) 
+{
+	mm_segment_t oldfs;
+	INT ret;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+	oldfs = get_fs();
+	set_fs(get_ds());
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+	oldfs = get_fs();
+	set_fs( KERNEL_DS );
+#else
+	oldfs = force_uaccess_begin();
+#endif
+
+	ret = vfs_read(file, data, size, &offset);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+	set_fs(oldfs);
+#else
+	force_uaccess_end(oldfs);
+#endif
+	return ret;
+}
+EXPORT_SYMBOL(dz_file_read);
+
+RINT dz_file_write(struct file *file, ULONGLONG offset, UCHAR *data, UINT size) 
+{
+	mm_segment_t oldfs;
+	INT ret;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+	oldfs = get_fs();
+	set_fs(get_ds());
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+	oldfs = get_fs();
+	set_fs( KERNEL_DS );
+#else
+	oldfs = force_uaccess_begin();
+#endif
+
+	ret = vfs_write(file, data, size, &offset);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+	set_fs(oldfs);
+#else
+	force_uaccess_end(oldfs);
+#endif
+    return ret;
+}
+EXPORT_SYMBOL(dz_file_write);
+
+RINT dz_file_sync(struct file *file) 
+{
+    vfs_fsync(file, 0);
+    RETURNS;
+}
+EXPORT_SYMBOL(dz_file_sync);

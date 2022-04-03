@@ -1,0 +1,36 @@
+1. Description:
+This code is written in a kernel module on Linux Centos 7.3 with kernel version as 3.10+. It will require root priviledges
+to compile and run this code.
+This code validates that the logic mentioned in the online test is working correctly. This code is not a final solution 
+because it assumes map and queue sizes and also ignore the memory freeing and other stuffs.
+
+Main functionality of deep copy  starts from function ch_tree_main() defined in tree_deep_copy.c
+
+There are 5 files created for deep copy functionality:
+
+1. README   : Basic details
+2. Makefile : To compile the code
+3. tree_deep_copy.h  : Source Header file
+4. tree_deep_copy.c  : Source code for Deep Copy
+5. tree_deep_utils.c : Utility functions for memory/map/queue allocation/deallocations and module loading/unloading functions
+
+
+2. How to compile the code
+#> make all
+
+3. How to run.
+#> make ins
+The above command will load a kernel module in kernel. Please dont' use a production machine to run this code because it is not
+freeing memory currently. Instead use a test virtual machine and execute this code there.
+
+3. How to rerun.
+#> make rm ins
+The above command will unload the previously loaded module and load a new one
+
+4. How to view the output
+Run the following command at shell command prompt. 
+#> dmesg |grep DeepCopy
+
+e.g. 
+#> dmesg --clear ; make rm ins ; dmesg |grep DeepCopy
+

@@ -1,0 +1,114 @@
+===============================================================
+1. Design: AISA Device Creation or AISA Target Device Creation
+===============================================================
+1. A base target device will be created on a MDRaid Data device e.g. /dev/md0.
+2. Its name will be AISA. It will be created as /dev/mapper/AISA. So essentially /dev/md0 is 
+a backstore of Parent device for /dev/mapper/AISA.
+3. It will have a unique id passed from user space dmsetup command
+4. Size of AISA Target device will also be passed from user space dmsetup command
+5. Name of the target table loaded inside the kernel is again AISA. It is defined in aisa_init.c
+e.g.
+static struct   target_type aisa = { 
+
+    .name       = "AISA",
+    .version    = {1,0,0},
+    .module     = THIS_MODULE,
+    .ctr        = aisa_ctr,
+    .dtr        = aisa_dtr,
+    .map        = aisa_map,
+};
+
+6. Target device is created with a python command 'fvm'. fvm stands for flash volume manager
+$ fvm aisa
+It will eventually invoke dmsetup command. 
+e.g.
+dmsetup create AISA --uuid AISA-DEVICE_TYPE_AISA462cbb5f-da2c-4d54-9645-a475abcfd6c8DEVICE_TYPE_AISA-AISA --table " 0 10485760 AISA /dev/md0 0 DEVICE_TYPE_AISA AISA 4445564943455f545950455f41495341 AISA-DEVICE_TYPE_AISA462cbb5f-da2c-4d54-9645-a475abcfd6c8DEVICE_TYPE_AISA-AISA /dev/md1 414953414d544454 AISA-METADATA-b3a7ca22-b63a-4e71-a2a9-01c9522f5c5d-METADATA-AISA "
+
+The above output command is generated through this input command inside create_aisa() 
+function in AISA_FlashVol.py
+
+ cmdstr += 'dmsetup create ' + dev_name                 #=> dev_name is AISA
+        cmdstr += ' --uuid '        + str(dev_uuid)     #=> dev_uuid is AISA-DEVICE_TYPE_AISAA462.....
+        cmdstr += ' --table "'                          #=> --table as it is
+        cmdstr += ' ' + str(dev_start_sector)           #=> 0   
+        cmdstr += ' ' + str(dev_len)                    #=> 10485760
+        cmdstr += ' ' + dev_table_name                  #=> AISA => "struct   target_type aisa = {"
+        cmdstr += ' ' + dev_data_device_name            #argv[0] => /dev/md0       
+        cmdstr += ' ' + str(dev_start_sector_2)         #argv[1] => 0
+        cmdstr += ' ' + dev_type                        #argv[2] => DEVICE_TYPE_AISA
+        cmdstr += ' ' + dev_name                        #argv[3] => AISA Note:Passed twice
+        cmdstr += ' ' + dev_magic                       #argv[4] => 444556...495341
+        cmdstr += ' ' + dev_uuid                        #argv[5] => AISA-DEVICE_...-AISA
+        cmdstr += ' ' + dev_metadata_name               #argv[6] => /dev/md1
+        cmdstr += ' ' + dev_metadata_magic              #argv[7] => 414953...544454
+        cmdstr += ' ' + dev_metadata_uuid               #argv[8] => AISA-METADATA-b3....5d-METADATA-AISA
+        cmdstr += ' "' 
+
+
+===============================================================
+2. Design: Data Volume Device Creation
+===============================================================
+1. A data volume will be created on AISA Target Device i.e. /dev/mapper/AISA. So essentially
+the backstore of Parent of data volume will be /dev/mapper/AISA
+2. Newly created data volume will be present in /dev/mapper directory. 
+E.g. if name is datavol then the path will be /dev/mapper/datavol
+3. Data Volume is created using fvm command.
+$ ./fvm d testdatavol 1024 /dev/mapper/AISA
+It will eventually invoke dmsetup command. 
+
+[20:36:28][DEBUG]   CMD: dmsetup create testdatavol --uuid AISA-DEVICE_TYPE_DATA_VOLUME566c7593-fed5-48e2-8275-95a8f894cb04DEVICE_TYPE_DATA_VOLUME-AISA --table " 0 2097152 AISA_DATAVOL /dev/mapper/AISA 0 DEVICE_TYPE_DATA_VOLUME testdatavol 4445564943455f545950455f444154415f564f4c554d45 AISA-DEVICE_TYPE_DATA_VOLUME566c7593-fed5-48e2-8275-95a8f894cb04DEVICE_TYPE_DATA_VOLUME-AISA  "
+
+The above output command is generated through this input command inside create_ddvol() 
+function in AISA_FlashVol.py
+
+cmdstr += 'dmsetup create ' + dev_name                  # dev_name is testdatavol
+        cmdstr += ' --uuid '        + str(dev_uuid)     # dev_uuid is AISA-DEVICE_TYPE_DATA_VOL
+        cmdstr += ' --table "'                          # --table as it is
+        cmdstr += ' ' + str(dev_start_sector)           # => 0
+        cmdstr += ' ' + str(dev_len)                    # => 2097152
+        cmdstr += ' ' + dev_table_name                  # => AISA_DATAVOL => struct target_type aisa_datavol
+        cmdstr += ' ' + dev_data_device_name            #argv[0] => /dev/mapper/AISA
+        cmdstr += ' ' + str(dev_start_sector_2)         #argv[1] => 0
+        cmdstr += ' ' + dev_type                        #argv[2] => DEVICE_TYPE_DATA_VOLUME
+        cmdstr += ' ' + dev_name                        #argv[3] => testdatavol Note:Passed twice
+        cmdstr += ' ' + dev_magic                       #argv[4] => 444556...554d45
+        cmdstr += ' ' + dev_uuid                        #argv[5] => AISA_DEVICE....
+        cmdstr += ' ' + dev_parent                      #argv[5] => Not required because it is a datavolume
+        cmdstr += ' "'
+
+===============================================================
+2. Design: Snapshot Volume Device Creation
+===============================================================
+1. Backstore or Parent of Snapshot volume will be a data volume
+
+[root@localhost cli]# ./fvm dsr snapdatavol 1024 /dev/mapper/testdatavol
+
+[21:20:20][DEBUG]   CMD: dmsetup create snapdatavol --uuid AISA-DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READf2828286-46bf-48de-a3db-bc45decf0f83DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ-AISA --table " 0 2097152 AISA_DATAVOLSR /dev/mapper/AISA 0 DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ snapdatavol 4445564943455f545950455f444154415f564f4c554d455f534e415053484f545f52454144 AISA-DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READf2828286-46bf-48de-a3db-bc45decf0f83DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ-AISA /dev/mapper/testdatavol "
+
+
+The above output command is generated through this input command inside create_ddvol() 
+function in AISA_FlashVol.py
+
+cmdstr += 'dmsetup create ' + dev_name                  # dev_name is snapdatavol
+        cmdstr += ' --uuid '        + str(dev_uuid)     # dev_uuid is AISA-DEVICE_TYPE_DATA_VOLUME_SNAPSHOT_READ....
+        cmdstr += ' --table "'                          # --table as it is
+        cmdstr += ' ' + str(dev_start_sector)           # => 0
+        cmdstr += ' ' + str(dev_len)                    # => 2097152
+        cmdstr += ' ' + dev_table_name                  # => AISA_DATAVOLSR => struct target_type aisa_datavol_sr
+        cmdstr += ' ' + dev_data_device_name            #argv[0] => /dev/mapper/AISA
+        cmdstr += ' ' + str(dev_start_sector_2)         #argv[1] => 0
+        cmdstr += ' ' + dev_type                        #argv[2] => DEVICE_TYPE_DATA_VOLUME
+        cmdstr += ' ' + dev_name                        #argv[3] => testdatavol Note:Passed twice
+        cmdstr += ' ' + dev_magic                       #argv[4] => 444556...554d45
+        cmdstr += ' ' + dev_uuid                        #argv[5] => AISA_DEVICE....
+        cmdstr += ' ' + dev_parent                      #argv[5] => Not required because it is a datavolume
+        cmdstr += ' "'
+
+
+
+AISA : /dev/mapper/AISA
+mydatavol : /dev/mapper/AISA/mydatavol
+
+/dev/mapper/mydatavol
+/dev/mapper/mydatavol_sread
+/dev/mapper/mydatavol_swrite

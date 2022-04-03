@@ -1,0 +1,197 @@
+[23:51:02][DEBUG] Config File /etc/datazaid/avm.conf exist
+[23:51:02][INFO ] Config file /etc/datazaid/avm.conf populated
+  AISA Volume Manager (AVM) CLI Version    1.1.a
+  AISA Volume Manager (AVM) Driver Version 3.10.101
+  Current Date: 08/06/2017 23:51:02
+
+  Usage: 
+
+  To Create AISA Target Device
+  ----------------------------
+  #> avm < --create | -c | create > < AISA | -a | aisa > [ --size < SIZE > ]
+  Where
+  SIZE: It is in GB. Optional argument
+  NOTE: The default size is the size of the Data Device
+      : provided in avm.conf
+
+  Examples:
+	To Create AISA Target with default size
+	#> avm --create AISA
+
+	To Create AISA Target with 100 GB size
+	#> avm --create AISA --size 100
+
+  To Create Volumes
+  -----------------
+  #> avm < --create | -c | create > < --volume | -vol > --name < VOL_NAME > --size < SIZE >
+  Where
+  VOL_NAME 	: Name of volume passed
+  SIZE 		: It is in GB. Optional argument
+
+  Examples:
+	To Create a Volume testvol with size 1024
+	#> avm --create --volume --name testvol --size 1024
+
+	To Create a Volume testvol with default size
+	#> avm --create --volume --name testvol
+
+  To Create ReadOnly and Writable Snapshot Volumes
+  ------------------------------------------------
+  #> avm < --create | -c | create > < --sread | -srvol > --name < VOL_NAME > --parent < PVOL_NAME >
+  OR
+  #> avm < --create | -c | create > < --swrite | -swvol > --name < VOL_NAME > --parent < PVOL_NAME >
+  Where
+  VOL_NAME	: Name of Snapshot Volume
+  PVOL_NAME	: Name of Volume whose snapshot is being taken
+
+  Examples:
+	To Create a ReadOnly Snapshot Volume testvolsr for volume testvol
+	#> avm --create --sread --name testvolsr --parent testvol
+
+	To Create a Writable Snapshot Volume testvolsw for volume testvol
+	#> avm --create --swrite --name testvolsw --parent testvol
+
+  To Create Volumes dedicated for Virtual Machines
+  ------------------------------------------------
+  #> avm < --create | -c | create > < --vmvolume | -vmvol > --name < VOL_NAME > --size < SIZE >
+  Where
+  VOL_NAME 	: Name of Virtual Machine Volume passed
+  SIZE 		: It is in GB. Optional argument
+
+  Examples:
+	To Create a VM Volume testvmvol with size 1024
+	#> avm --create --vmvolume --name testvmvol --size 1024
+
+	To Create a VM Volume testvmvol with default size
+	#> avm --create --vmvolume --name testvmvol
+
+  To Create ReadOnly and Writable Snapshot Volumes for VM Volumes
+  ---------------------------------------------------------------
+  #> avm < --create | -c | create > < --vmsread | -vmsr > --name < VOL_NAME > --parent < PVOL_NAME >
+  OR
+  #> avm < --create | -c | create > < --vmswrite | -vmsw > --name < VOL_NAME > --parent < PVOL_NAME >
+  Where
+  VOL_NAME	: Name of Snapshot Volume
+  PVOL_NAME	: Name of Volume whose snapshot is being taken
+
+  Examples:
+	To Create a ReadOnly Snapshot Volume testvolsr for VM volume testvmvol
+	#> avm --create --vmsread --name testvolsr --parent testvmvol
+
+	To Create a Writable Snapshot Volume testvolsw for VM volume testvmvol
+	#> avm --create --vmswrite --name testvolsw --parent testvmvol
+
+  To Delete a Volume (Be it volume, snapshot, virtual machine volume)
+  -------------------------------------------------------------------
+  #> avm < --delete | -d | delete > < VOL_NAME | all | AISA > 
+
+  Examples:
+	To Delete a Volume testvol
+	#> avm --delete testvol
+
+	To Delete all volumes
+	#> avm --delete all
+
+	To Delete AISA Target 
+	#> avm --delete AISA
+
+  To List all Volumes
+  -------------------
+  #> avm < --list | -l | ls | list >
+
+  To show details/info of each volumes
+  ------------------------------------
+  #> avm < --info | -i | info > [ VOL_NAME | all  ] 
+
+  Examples:
+	To get info about Volume testvol
+	#> avm --info testvol
+
+	To get info for all volumes and AISA Target
+	#> avm --info all
+
+	To get info for all volumes only
+	#> avm --info
+
+  To show sizes of volumes and block devices
+  ------------------------------------------
+  #> avm < --size | -sz | sz | size > [ NAME | all | default  ] 
+  Where
+  NAME    : Name of volume passed or any block device present in the system
+          : It should be always provided with complete path
+  all     : Will print the sizes of all volumes created and AISA target
+  default : Will print the default size of AISA Target
+
+  This command will print the size in bytes, blocks, KB, MB and GBs
+  If none of the arugments is passed then it will print the sizes of 
+  all volumes excluding AISA target. Size shown in blocks, KB, MB and GB 
+  will always have integer value
+
+  Examples:
+	To get size about Volume testvol
+	#> avm --size /dev/mapper/testvol
+
+	To get size of all volumes and AISA Target
+	#> avm --size all
+
+	To get size of all volumes only
+	#> avm --size
+
+	To get size for block device /dev/sda
+	#> avm --size /dev/sda
+
+  To show memory utilization and all engine counters
+  --------------------------------------------------
+  #> avm < --stats | -st | st | stats > [ -m | m | -d | d |-f | -b | b | t | -t | -all | all  ] 
+  Where
+  -m/m     : Print Kernel Memory Utilization during initialization
+  -d/d     : Print Dedupe Engine Counters
+  -f/f     : Print FrontEnd Cache Engine Counters
+  -b/b     : Print BackEnd Cache Engine Counters
+  -t/t     : Print InMemory LBA, HASH and PBA tables
+  -all/all : Print all of above
+
+
+  Examples:
+	To get kernel memory utilization during initialization
+	#> avm --stats -m
+
+	To get FrontEnd Cache Engine Counters
+	#> avm --stats -f
+
+	To get BackEnd Cache Engine Counters
+	#> avm --stats -b
+
+	To get Dedupe Engine Engine Counters
+	#> avm --stats -d
+
+	To get memory and all Engine Counters
+	#> avm --stats -d
+
+  To List all kernel modules
+  --------------------------
+  #> avm < --kernel-modules | -km | km >
+
+  To Show status of all kernel modules and target device
+  ------------------------------------------------------
+  #> avm < --status | -s | status >
+
+  To Show LBA Table Entry for a given index
+  ------------------------------------------------------
+  #> avm < --lba | lba > < INDEX_NUMBER >
+
+  To Show PBA Table Entry for a given index
+  ------------------------------------------------------
+  #> avm < --pba | pba > < INDEX_NUMBER >
+
+  To show help
+  ------------
+  #> avm < --help | -h | help | -? > \
+    [ --create | -c | create ] \
+    [ --delete | -d | delete ] \
+    [ --info | -i | info ] \
+    [ --size | -sz | sz | size ] \
+    [ --stats | -st | st | stats ] \
+    [ --list | -l | ls | list ] 
+  Note: Keywords and arguments are strictly in order.
+

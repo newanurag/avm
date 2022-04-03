@@ -1,0 +1,27 @@
+###################################################################################################################################
+#
+#								GENERAL KERNEL config tunables. 
+# It is used when loading the config paramters from avm.conf file into kernel
+#
+###################################################################################################################################
+###################################################################################################################################
+# NAME						| TYPE	| OPS	|DEFAULT| Show Function  					| Store Function
+# sysfs entries visible in 	|       |       |VALUE 	| This should already be) 			| Same limitation as
+# /sys/kernel/avm/         	|       |       |       | defined in header file,otherwise	| Show function
+#                          	|       |       |       | compilation will fail)			|
+###################################################################################################################################
+#
+get_free_page_count			|U64	| SHOW	|		| avm_get_free_page_count			| NULL
+get_list_of_objects			|STRING	| SHOW	|		| avm_get_list_of_objects			| NULL
+get_version					|STRING	| SHOW	|		| avm_get_version					| NULL
+#Entry for showing memory comsumption by all engines and AVM target
+get_memory_info				|STRING	| SHOW	|		| avm_get_memory_info				| NULL
+#
+#Entry for showing All Engine Counters/Timers
+get_all_counters			|STRING	| SHOW	|		| avm_get_all_counters				| NULL
+#
+#To show sizeof datastructures and data types
+get_sizeof_datastructures	|STRING	| SHOW	|		| avm_get_sizeof_datastructures		| NULL
+#
+write						|INTEGER| STORE	| 		| NULL								| NULL
+read						|INTEGER| SHOW	|		| NULL								| NULL

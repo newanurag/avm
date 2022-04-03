@@ -1,0 +1,267 @@
+
+#include "tree_deep_copy.h"
+
+//Root of original tree
+PCH_TREE_NODE		deep_tree_root 	= NULL;
+
+//Root of destination tree i.e. copy of original tree
+PCH_TREE_NODE		deep_clone_root = NULL;
+
+//Map Metadata / Placeholders
+#define	MAP_SIZE				64
+static 	PCH_MAP	local_map		= NULL;
+static	INT 	local_map_idx	= 0;
+static	UINT 	local_map_size	= MAP_SIZE;
+
+//MAP Macros
+#define CREATE_MAP()	\
+	local_map = ch_tree_create_map(local_map_size)
+
+#define SET_MAP(arg_key, arg_value)	\
+	ch_tree_set_map((ULONGLONG)arg_key, arg_value) //Typecasting since arg_key is of type INT
+
+#define	GET_MAP(arg_key)	\
+	(ULONGLONG *)ch_tree_get_map(arg_key)
+
+#define	PRINT_MAP()	\
+	ch_tree_print_map()
+
+//Creatin a linear map for simplification purpose. 
+PCH_MAP ch_tree_create_map(UINT sz)
+{
+	local_map = kmalloc(sizeof(ULONGLONG) * sz, GFP_KERNEL);
+	if (local_map) {
+		LOG("MAP Created of size %u\n", sz);
+	}
+	ch_tree_reset_map();
+	return local_map;
+}
+
+VOID ch_tree_reset_map(VOID)
+{
+	memset(local_map, 0, sizeof(*local_map));
+	local_map_idx = 0;
+	for (local_map_idx = 0; local_map_idx < local_map_size; local_map_idx++) {
+
+		local_map[local_map_idx].key = 0;
+		local_map[local_map_idx].value = NULL;
+	}
+}
+
+//Searching will happen linearly. Just for simplification purpose.
+PVOID ch_tree_get_map(ULONGLONG key)
+{
+	for (local_map_idx = 0; local_map_idx < local_map_size; local_map_idx++) {
+
+		if (local_map[local_map_idx].key == key) {
+			//LOG("MAP->GET: Key[%u] = %llu, Value = %p\n", local_map_idx,
+			//local_map[local_map_idx].key,
+			//local_map[local_map_idx].value);
+			return local_map[local_map_idx].val;
+		}
+	}
+	
+	return NULL;
+}
+
+//Insertion in this map will happen linearly. Just for simplification purpose.
+VOID ch_tree_set_map(ULONGLONG key, PVOID value)
+{
+	for (local_map_idx = 0; local_map_idx < local_map_size; local_map_idx++) {
+
+		//Look for empty space in map and insert the key value there
+		if (local_map[local_map_idx].key == 0) {
+			local_map[local_map_idx].key = key;
+			local_map[local_map_idx].val = value;
+
+			//LOG("MAP->SET: Key[%u] = %llu, Value = %p\n", local_map_idx,
+			//local_map[local_map_idx].key,
+			//local_map[local_map_idx].value);
+			break;
+		}
+	}
+}
+
+VOID ch_tree_print_map(VOID)
+{
+	for (local_map_idx = 0; local_map_idx < local_map_size; local_map_idx++) {
+
+		LOG("MAP->Print: Key[%u] = %llu, Value = %p\n", local_map_idx,
+		local_map[local_map_idx].key, local_map[local_map_idx].value);
+	}
+}
+
+VOID ch_tree_print_node(PCH_TREE_NODE node)
+{
+	int i = 0;
+	LOG("Node->self         = %p\n", node      );
+	LOG("Node->data         = %d\n", node->data);
+	LOG("Node->cycle        = %p\n", node->cycle);
+	if (node->cycle) {
+		LOG("Node->cycle->data  = %d\n", node->cycle->data);
+	}
+	for (i = 0; i < DZ_TREE_NODE_CHILDREN; i++) {
+		LOG("Node->children[%d] = %p\n", i, node->childrens[i]);
+	}
+}
+
+VOID ch_tree_print_level_order(PCH_TREE_NODE root)
+{
+
+}
+
+PCH_TREE_NODE ch_tree_alloc_node(VOID)
+{
+    PCH_TREE_NODE node = kmalloc(sizeof(CH_TREE_NODE), GFP_KERNEL);
+	if (!node) {
+		LOG("%s","Error, Unable to allocate memory for tree node\n");
+		return NULL;
+	}
+	memset(local_map, 0, sizeof(*local_map));
+	return node;
+}
+
+VOID ch_tree_deep_copy_cycle(PCH_TREE_NODE root, PCH_TREE_NODE clone)
+{
+	int i = 0;
+
+	if (root->cycle) {
+		clone->cycle = (PCH_TREE_NODE)GET_MAP(root->cycle->data);
+	}
+
+	for (i = 0; i < DZ_TREE_NODE_CHILDREN; i++) {
+		if (root->childrens[i]) {
+			ch_tree_deep_copy_cycle(root->childrens[i], clone->childrens[i]);
+		}
+	}
+
+
+}
+
+PCH_TREE_NODE ch_tree_deep_copy_core(PCH_TREE_NODE root)
+{
+	PCH_TREE_NODE clone_root = NULL;
+	int i = 0;
+
+	if (root) {
+		clone_root = ch_tree_alloc_node();
+		clone_root->data = root->data;
+
+
+		LOG("Setting Map\n");
+		SET_MAP(clone_root->data, root);
+
+		for (i = 0; i < DZ_TREE_NODE_CHILDREN; i++) {
+			if (root->childrens[i]) {
+				clone_root->childrens[i] = ch_tree_deep_copy_core(root->childrens[i]);
+			}
+		}
+		
+	}
+
+	return clone_root;
+}
+
+PCH_TREE_NODE ch_tree_deep_copy(PCH_TREE_NODE root)
+{
+	PCH_TREE_NODE clone;
+
+	clone = ch_tree_deep_copy_core(root);
+	ch_tree_deep_copy_cycle(root, clone);
+	return clone;
+}
+
+/* Manually Creating a Tree of 3 childrens.
+
+                     [root]
+                    ___|____
+                   /  /  \  \
+                  /  /    \  \
+               ch1  ch2  ch3  cycle (This cycle pointer points to first child (chA) of child ch1)
+            ___|____
+           /  /  \  \
+          /  /    \  \
+       chA  chB  chC  cycle (This cycle points to root)
+
+*/
+
+#define	INSERT_NODE(arg_element, arg_data)	\
+		*((arg_element) = ch_tree_alloc_node()) = (CH_TREE_NODE) { .data = (arg_data), .childrens[0] = NULL, NULL, NULL, NULL}
+
+PCH_TREE_NODE ch_tree_create(PCH_TREE_NODE root)
+{
+	PCH_TREE_NODE pnode = root;
+	if (!root) {
+		root = ch_tree_alloc_node();
+		INSERT_NODE(root, 101);				 //root
+	}
+
+	INSERT_NODE(root->childrens[0], 101000); //ch1
+	INSERT_NODE(root->childrens[1], 101100); //ch2
+	INSERT_NODE(root->childrens[2], 101200); //ch2
+
+	pnode = root->childrens[0];
+	INSERT_NODE(pnode->childrens[0], 201000); //chA
+	INSERT_NODE(pnode->childrens[1], 201100); //chB
+	INSERT_NODE(pnode->childrens[2], 201200); //chC
+
+	//Set the cycle point to first child and vice-versa
+	pnode = root->childrens[0];
+	pnode->cycle = root; //Ch1 cycle pointer points to tree root
+	//root->cycle  = pnode; //root cycle pointer points to chA
+	root->cycle  = pnode->childrens[0]; //root cycle pointer points to chA
+
+
+	//ch_tree_print_node(root);
+	//LOG("Original: ch1->cycle->data = %d\n", pnode->cycle->data);
+	//LOG("Original:root->cycle->data = %d\n", root->cycle->data);
+	//ch_tree_print_node(root->childrens[0]);
+
+	return root;
+}
+
+//Main processing starts from here
+VOID ch_tree_main(VOID)
+{
+	LOG("##########################################################\n");
+	LOG("                 DeepCopy With Cycle Pointer              \n");
+	LOG("##########################################################\n");
+	CREATE_MAP();	
+	//PRINT_MAP();
+	deep_tree_root = ch_tree_create(deep_tree_root);
+	ch_tree_print_node(deep_tree_root); //Print Just root node only
+	LOG("##########################################################\n");
+	LOG("                Source/Original Tree Created              \n");
+	LOG("##########################################################\n");
+	deep_clone_root = ch_tree_deep_copy(deep_tree_root);
+	ch_tree_print_node(deep_clone_root); //Print Just clone root node only
+
+	//Freeing of kernel memory will be done later	
+	
+	return;
+}
+
+static int ch_tree_module_init(void)
+{
+    LOG(" ______________________________________________________ \n");
+    LOG("|                                                      |\n");
+    LOG("|           Tree Module Loaded                         |\n");
+    LOG("|______________________________________________________|\n");
+
+	ch_tree_main();
+    return 0;
+}
+
+static void ch_tree_module_exit(void)
+{
+    LOG(" ______________________________________________________ \n");
+    LOG("|                                                      |\n");
+    LOG("|           Tree Module UnLoaded                       |\n");
+    LOG("|______________________________________________________|\n");
+}
+
+module_init(ch_tree_module_init);
+module_exit(ch_tree_module_exit);
+MODULE_LICENSE(CH_MODULE_LICENSE);
+MODULE_AUTHOR(CH_MODULE_AUTHOR);
+

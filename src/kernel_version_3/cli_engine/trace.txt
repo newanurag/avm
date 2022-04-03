@@ -1,0 +1,3 @@
+#How to start tracing in python
+python -m trace --listfuncs --trackcalls AISA.py start
+
