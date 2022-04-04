@@ -35,7 +35,6 @@ help:
 	@echo "# make 3 4 -> For building both 3 and 4 kernel targets"
 	@echo "################################################################################"
 
-all:help
 
 lsmod:log
 	lsmod |grep avm
@@ -99,53 +98,53 @@ log:
 ###############################################################################
 
 4:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 all)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 all)
 
 4all:4
 
 4c:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 clean)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 clean)
 
 4log:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _log)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _log)
 
 4lab:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _lab)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _lab)
 
 4infra:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _infra)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _infra)
 
 4lab:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _lab)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _lab)
 
 4bec:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _bec)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _bec)
 
 4md:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _md)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _md)
 
 4dedupe:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _dedupe)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _dedupe)
 
 4dd: 4dedupe
 
 4fec:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _fec)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _fec)
 
 4ae:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _ae)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _ae)
 
 4target:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _target)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _target)
 
 4volume:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _volume)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _volume)
 
 4sysfs:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 _sysfs)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _sysfs)
 
 4pkg:
-	(cd kernel_version_4/;pwd;	. ./setup; make -f Makefile.x86 pkg)
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 pkg)
 
 
 4a:4
@@ -168,3 +167,5 @@ carm:
 scp:
 	scp -r /home/averma/avm/src/kernel_version_4/kernel_objects root@testvm:/home/averma/avm/
 	scp -r /home/averma/avm/src/kernel_version_4/scripts        root@testvm:/home/averma/avm/
+
+all:4ca carm

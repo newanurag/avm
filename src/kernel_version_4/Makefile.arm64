@@ -1,4 +1,4 @@
-include $(DZ_PROJECT_PATH)/include.mk
+include $(DZ_PROJECT_PATH)/include.mk.arm64
 
 DZ_PKG_BUILD_SCRIPT = $(DZ_PROJECT_PATH)/build_pkg/dz_prepkg.sh
 DZ_RPM_BUILD_SCRIPT = $(DZ_PROJECT_PATH)/build_pkg/dz_makerpm.sh
@@ -53,7 +53,7 @@ obj-m                       := $(KERNEL_MODULE_NAME).o
 _log:
 	@echo ""
 	@echo "############################################"
-	@echo "1/11 - Building AVM Log Engine"
+	@echo "1/11 - [ARM64] Building AVM Log Engine"
 	@date
 	@echo $(DZ_LOG_ENGINE_PATH)
 	@echo "############################################"
@@ -69,7 +69,7 @@ log:_log
 _infra:
 	@echo ""
 	@echo "############################################"
-	@echo "2/11 - Building AVM Infrastructure Engine"
+	@echo "2/11 - [ARM64] Building AVM Infrastructure Engine"
 	@date
 	@echo $(DZ_INFRA_ENGINE_PATH)
 	@echo "############################################"
@@ -85,7 +85,7 @@ infra:log _infra
 _lab:
 	@echo ""
 	@echo "#########################################"
-	@echo "3/11 - Building AVM LAB Engine"
+	@echo "3/11 - [ARM64] Building AVM LAB Engine"
 	@date
 	@echo $(DZ_LAB_ENGINE_PATH)
 	@echo "#########################################"
@@ -101,7 +101,7 @@ lab:infra _lab
 _bec:
 	@echo ""
 	@echo "###############################################"
-	@echo "4/11 - Building AVM BEC (Back End Cache) Engine"
+	@echo "4/11 - [ARM64] Building AVM BEC (Back End Cache) Engine"
 	@date
 	@echo $(DZ_BEC_ENGINE_PATH)
 	@echo "###############################################"
@@ -117,7 +117,7 @@ bec:lab _bec
 _md:
 	@echo ""
 	@echo "#################################################"
-	@echo "5/11 - Building AVM MetaData Engine"
+	@echo "5/11 - [ARM64] Building AVM MetaData Engine"
 	@date
 	@echo $(DZ_METADATA_ENGINE_PATH)
 	@echo "#################################################"
@@ -134,7 +134,7 @@ md:bec _md
 _dedupe:
 	@echo ""
 	@echo "###############################################"
-	@echo "6/11 - Building AVM Dedupe Engine"
+	@echo "6/11 - [ARM64] Building AVM Dedupe Engine"
 	@date
 	@echo $(DZ_DEDUPE_ENGINE_PATH)
 	@echo "###############################################"
@@ -150,7 +150,7 @@ dedupe:md _dedupe
 _fec:
 	@echo ""
 	@echo "################################################"
-	@echo "7/11 - Building AVM FEC (Front End Cache) Engine"
+	@echo "7/11 - [ARM64] Building AVM FEC (Front End Cache) Engine"
 	@date
 	@echo $(DZ_FEC_ENGINE_PATH)
 	@echo "################################################"
@@ -166,7 +166,7 @@ fec:dedupe _fec
 _ae:
 	@echo ""
 	@echo "################################################"
-	@echo "8/11 - Building AVM Alignment Engine"
+	@echo "8/11 - [ARM64] Building AVM Alignment Engine"
 	@date
 	@echo $(DZ_ALIGNMENT_ENGINE_PATH)
 	@echo "################################################"
@@ -182,7 +182,7 @@ ae:fec _ae
 _target:
 	@echo ""
 	@echo "################################################"
-	@echo "9/11 - Building AVM Target Engine"
+	@echo "9/11 - [ARM64] Building AVM Target Engine"
 	@date
 	@echo $(DZ_TARGET_ENGINE_PATH)
 	@echo "################################################"
@@ -198,7 +198,7 @@ target:ae _target
 _volume:
 	@echo ""
 	@echo "################################################"
-	@echo "10/11 - Building AVM Volume Engine"
+	@echo "10/11 - [ARM64] Building AVM Volume Engine"
 	@date
 	@echo $(DZ_VOLUME_ENGINE_PATH)
 	@echo "################################################"
@@ -214,7 +214,7 @@ volume:target _volume
 _sysfs:
 	@echo ""
 	@echo "################################################"
-	@echo "11/11 - Building AVM Sysfs Engine"
+	@echo "11/11 - [ARM64] Building AVM Sysfs Engine"
 	@echo `pwd`
 	@date
 	@echo $(DZ_SYSFS_ENGINE_PATH)
@@ -274,67 +274,67 @@ clean:
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Log Engine" `date`
+	@echo "[ARM64] Cleaning Log Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_LOG_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Infra Engine" `date`
+	@echo "[ARM64] Cleaning Infra Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_INFRA_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning LAB Engine" `date`
+	@echo "[ARM64] Cleaning LAB Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_LAB_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning BEC Engine" `date`
+	@echo "[ARM64] Cleaning BEC Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_BEC_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning FEC Engine" `date`
+	@echo "[ARM64] Cleaning FEC Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_FEC_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Alignment Engine" `date`
+	@echo "[ARM64] Cleaning Alignment Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_ALIGNMENT_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Dedupe Engine" `date`
+	@echo "[ARM64] Cleaning Dedupe Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_DEDUPE_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Metadata Engine" `date`
+	@echo "[ARM64] Cleaning Metadata Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_METADATA_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Target Engine" `date`
+	@echo "[ARM64] Cleaning Target Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_TARGET_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Volume Engine" `date`
+	@echo "[ARM64] Cleaning Volume Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_VOLUME_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
-	@echo "Cleaning Sysfs Engine" `date`
+	@echo "[ARM64] Cleaning Sysfs Engine" `date`
 	@echo "#########################################################"
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_SYSFS_ENGINE_PATH)/ clean > /dev/null
 
