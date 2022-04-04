@@ -45,8 +45,14 @@ RVOID         dz_bdev_close(PBLOCK_DEVICE bdev);
 
 
 // Sector related Function Declarations
+#ifdef DZ_ARCH_X86
 INLINE 	SECTOR dz_convert_lba_to_sector(LBA lba);
 INLINE 	LBA dz_convert_sector_to_lba(SECTOR sector);
+#endif
+#ifdef DZ_ARCH_ARM64
+SECTOR dz_convert_lba_to_sector(LBA lba);
+LBA dz_convert_sector_to_lba(SECTOR sector);
+#endif
 
 
 //Print and other Utility Function Declarations

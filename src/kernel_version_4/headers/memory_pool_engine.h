@@ -12,8 +12,14 @@
 #include "bec_engine.h"
 
 // Memory Pools Function Declarations
+#ifdef DZ_ARCH_X86
 INLINE VOID log_memory_usage(U64 count);
 INLINE VOID reduce_memory_usage(U64 count);
+#endif
+#ifdef DZ_ARCH_ARM64
+VOID log_memory_usage(U64 count);
+VOID reduce_memory_usage(U64 count);
+#endif
 
 RPVOID 	dz_kmalloc(SIZE size, INT flags);
 RVOID 	dz_kfree(PVOID ptr, SIZE size);

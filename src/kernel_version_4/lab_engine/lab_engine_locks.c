@@ -251,10 +251,10 @@ VOID dz_semaphore_test(VOID)
 VOID dz_spin_lock_test(VOID)
 {
 	spin_lock_init(&dz_spinlock);
-#ifdef DZ_KERNEL_VERSION_4
+#ifdef DZ_ARCH_X86
 	LOG("SPINLOCK =%u, = 0x%x\n", (UINT)dz_spinlock.rlock.raw_lock.locked, (UINT)dz_spinlock.rlock.raw_lock.locked);
 #else
-	LOG("SPINLOCK =%u, = 0x%x\n", (UINT)dz_spinlock.rlock.raw_lock.head_tail, (UINT)dz_spinlock.rlock.raw_lock.head_tail);
+	//TODO:LOG("SPINLOCK =%u, = 0x%x\n", (UINT)dz_spinlock.rlock.raw_lock.head_tail, (UINT)dz_spinlock.rlock.raw_lock.head_tail);
 #endif
 }
 
