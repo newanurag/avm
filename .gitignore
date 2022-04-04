@@ -5,6 +5,7 @@ cscope.out
 *.mod.c
 *.ko.cmd
 *.o.cmd
+*.o.d
 *.mod
 *.swn
 *.swo

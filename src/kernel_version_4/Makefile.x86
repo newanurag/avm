@@ -35,7 +35,10 @@ DZ_PACKAGE_NAME_SHIP_SOURCE_CODE = avm_src
 #########################################################################
 # Kernel Module Generation
 #########################################################################
-ARG_TARGET_KERNEL_SRC_PATH  = /home/averma/kernel/linux-4.14.271/linux-4.14.271.x86
+#ARG_TARGET_KERNEL_SRC_PATH  = /home/averma/kernel/linux-4.14.271/linux-4.14.271.x86
+#ARG_TARGET_KERNEL_SRC_PATH  = /home/averma/avm/kernel_images/linux-4.14.271.x86
+#ARG_TARGET_KERNEL_SRC_PATH  = /usr/src/linux-headers-4.14.271-avm.x86
+ARG_TARGET_KERNEL_SRC_PATH   = $(DZ_PROJECT_PATH)/../../linux_kernels/kernel_headers/x86/linux-headers-4.14.271-avm.x86
 #ARG_TARGET_KERNEL_SRC_PATH  = /home/averma/kernel/samsung/kernel
 
 OBJ_FILES                   := $(SRC_FILES:.c=.o)

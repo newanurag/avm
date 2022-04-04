@@ -1,6 +1,0 @@
-systemctl enable target.service
-systemctl restart target.service 
-systemctl status target.service 
-firewall-cmd --permanent --add-port=3260/tcp
-firewall-cmd --reload 
-

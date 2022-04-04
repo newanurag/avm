@@ -1,7 +1,7 @@
 AVM_DIR="/opt/DATUMSOFT/zaidstor_databank/avm"
 CONFIG_DIR="/etc/datumsoft"
 MODULE_DIR="${AVM_DIR}/kernel"
-MODULE_DIR="/home/averma/avm/kernel_version_4/kernel_objects"
+MODULE_DIR="/home/averma/avm/src/kernel_version_4/kernel_objects"
 
 LEM="avm_1_log_engine_module.ko"
 IEM="avm_2_infra_engine_module.ko"
