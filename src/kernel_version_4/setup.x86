@@ -7,6 +7,7 @@ export DZ_PROJECT_PATH
 
 DZ_VERSION_1_0="1.0"
 DZ_CURRENT_VERSION=${DZ_VERSION_1_0}
+DZ_SUFFIX="-x86"
 
 #DZ_HEADERS_PATH="${DZ_PROJECT_PATH}/headers"
 
@@ -74,17 +75,17 @@ echo "# Dependency is represented as number sequence. Higher number value is dep
 #echo "DZ_TARGET_ENGINE_KERNEL_MODULE_NAME    := datumsoft_zaidstor_avm_9_B_target_engine_module"
 #echo "DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME    := datumsoft_zaidstor_avm_A_B_volume_engine_module"
 #echo "DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME     := datumsoft_zaidstor_avm_B_B_sysfs_engine_module"
-echo "DZ_LOG_ENGINE_KERNEL_MODULE_NAME       := avm_1_log_engine_module"
-echo "DZ_INFRA_ENGINE_KERNEL_MODULE_NAME     := avm_2_infra_engine_module"
-echo "DZ_LAB_ENGINE_KERNEL_MODULE_NAME       := avm_3_lab_engine_module"
-echo "DZ_BEC_ENGINE_KERNEL_MODULE_NAME       := avm_4_bec_engine_module"
-echo "DZ_METADATA_ENGINE_KERNEL_MODULE_NAME  := avm_5_metadata_engine_module"
-echo "DZ_DEDUPE_ENGINE_KERNEL_MODULE_NAME    := avm_6_dedupe_engine_module"
-echo "DZ_ALIGNMENT_ENGINE_KERNEL_MODULE_NAME := avm_7_alignment_engine_module"
-echo "DZ_FEC_ENGINE_KERNEL_MODULE_NAME       := avm_8_fec_engine_module"
-echo "DZ_TARGET_ENGINE_KERNEL_MODULE_NAME    := avm_9_target_engine_module"
-echo "DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME    := avm_A_volume_engine_module"
-echo "DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME     := avm_B_sysfs_engine_module"
+echo "DZ_LOG_ENGINE_KERNEL_MODULE_NAME       := avm_1_log_engine_module"${DZ_SUFFIX}
+echo "DZ_INFRA_ENGINE_KERNEL_MODULE_NAME     := avm_2_infra_engine_module"${DZ_SUFFIX}
+echo "DZ_LAB_ENGINE_KERNEL_MODULE_NAME       := avm_3_lab_engine_module"${DZ_SUFFIX}
+echo "DZ_BEC_ENGINE_KERNEL_MODULE_NAME       := avm_4_bec_engine_module"${DZ_SUFFIX}
+echo "DZ_METADATA_ENGINE_KERNEL_MODULE_NAME  := avm_5_metadata_engine_module"${DZ_SUFFIX}
+echo "DZ_DEDUPE_ENGINE_KERNEL_MODULE_NAME    := avm_6_dedupe_engine_module"${DZ_SUFFIX}
+echo "DZ_ALIGNMENT_ENGINE_KERNEL_MODULE_NAME := avm_7_alignment_engine_module"${DZ_SUFFIX}
+echo "DZ_FEC_ENGINE_KERNEL_MODULE_NAME       := avm_8_fec_engine_module"${DZ_SUFFIX}
+echo "DZ_TARGET_ENGINE_KERNEL_MODULE_NAME    := avm_9_target_engine_module"${DZ_SUFFIX}
+echo "DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME    := avm_A_volume_engine_module"${DZ_SUFFIX}
+echo "DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME     := avm_B_sysfs_engine_module"${DZ_SUFFIX}
 
 } > include.mk
 

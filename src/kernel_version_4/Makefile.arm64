@@ -276,66 +276,77 @@ clean:
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Log Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_LOG_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_LOG_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Infra Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_INFRA_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_INFRA_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning LAB Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_LAB_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_LAB_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning BEC Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_BEC_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_BEC_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning FEC Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_FEC_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_FEC_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Alignment Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_ALIGNMENT_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_ALIGNMENT_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Dedupe Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_DEDUPE_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_DEDUPE_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Metadata Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_METADATA_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_METADATA_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Target Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_TARGET_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_TARGET_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Volume Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_VOLUME_ENGINE_PATH)/ clean > /dev/null
 
 	@echo ""
 	@echo "#########################################################"
 	@echo "[ARM64] Cleaning Sysfs Engine" `date`
 	@echo "#########################################################"
+	rm -rf $(DZ_KERNEL_OBJECTS_PATH)/$(DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME).ko
 	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_SYSFS_ENGINE_PATH)/ clean > /dev/null
 
 	@rm -rf $(OBJ_FILES)

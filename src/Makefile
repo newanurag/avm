@@ -4,35 +4,11 @@ help:
 	@echo "################################################################################"
 	@echo ""
 	@echo "1) To build all engines/modules"
-	@echo "# make 3|3c -> For building/cleaning Kernel 3.10.1"
-	@echo "# make 4|4c -> For building/cleaning Kernel 4.14.271"
-	@echo "# make r|rc -> For building/cleaning live/running Kernel"
+	@echo "# make 3x|3cx   -> For building/cleaning Kernel 3.10.1 for Intel X86 architecure"
+	@echo "# make x|cx     -> For building/cleaning Kernel 4.14.271 for X86"
+	@echo "# make arm|carm -> For building/cleaning Kernel 4.14.271 for ARM64"
+	@echo "# make all      -> For building/cleaning Kernel 4.14.271 for X86 and ARM64"
 	@echo ""
-	@echo "2) To build selcted engine module."
-	@echo "# NOTE: It is not implemented yet for Kernel Version 3"
-	@echo "# make 4log    -> For Log                    Engine"
-	@echo "# make 4infra  -> For Infrastructre          Engine"
-	@echo "# make 4lab    -> For Lab                    Engine"
-	@echo "# make 4bec    -> For BackEnd  Cache         Engine"
-	@echo "# make 4fec    -> For FrontEnd Cache         Engine"
-	@echo "# make 4dd     -> For Data Deduplication     Engine"
-	@echo "# make 4md     -> For MetaData               Engine"
-	@echo "# make 4ae     -> For Aignment               Engine"
-	@echo "# make 4volume -> For Logical Volume Manager Engine"
-	@echo "# make 4target -> For Target                 Engine"
-	@echo "# make 4sysfs  -> For sysfs entries          Engine"
-	@echo ""
-	@echo "3) To build RPM Package. It will build CLI and Kernel modules in one rpm package "
-	@echo "# make pkg"
-	@echo ""
-	@echo "4) Normal Usage:"
-	@echo "# make 3   -> For building kernel 3.10.1 "
-	@echo "# make 3c  -> For cleaning kernel 3.10.1 "
-	@echo "# make 3ca -> For cleaning and building kernel 3.10.1 "
-	@echo "# make 4   -> For building kernel 4.14.271 "
-	@echo "# make 4c  -> For cleaning kernel 4.14.271 "
-	@echo "# make 4ca -> For cleaning and building kernel 4.14.271 "
-	@echo "# make 3 4 -> For building both 3 and 4 kernel targets"
 	@echo "################################################################################"
 
 
@@ -83,15 +59,6 @@ log:
 	@echo ""
 	@date
 
-3:
-	make -f kernel_version_3/Makefile.3.10.1 all
-
-3c:
-	make -f kernel_version_3/Makefile.3.10.1 clean
-
-3a:3
-
-3ca:3c 3a
 ###############################################################################
 # FOR KERNEL VERSION 3.x X86 Architecture
 ###############################################################################
@@ -102,7 +69,7 @@ log:
 	(cd kernel_version_3/;pwd;	. ./setup.x86; make -f Makefile.x86 clean all)
 
 ###############################################################################
-# FOR KERNEL VERSION 3.x ARM64 Architecture
+# FOR KERNEL VERSION 3.x ARM64 Architecture - NOT YET SUPPORTED DUE TO COMPILER
 ###############################################################################
 
 3arm:
