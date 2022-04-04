@@ -1,4 +1,4 @@
-include $(DZ_PROJECT_PATH)/include.mk
+include $(DZ_PROJECT_PATH)/include.mk.x86
 KBUILD_EXTRA_SYMBOLS := $(DZ_PROJECT_PATH)/Module.symvers
 KBUILD_EXTRA_SYMBOLS += $(DZ_PROJECT_PATH)/infra_engine/Module.symvers
 

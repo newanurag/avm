@@ -50,13 +50,10 @@ RVOID dz_far_for_single_block_biodone_tail(PBIO bio, INT error)
 	INT partial_bytes_head;
 	INT partial_bytes;
 	//LOG("child_biodone\n");	
-	//TODO:
-	/*
 	if (unlikely(!bio_flagged(bio, BIO_UPTODATE) && !error)) {
 		error = -EIO;
 	}
-	*/
-	//TODO:ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
+	ret = test_bit(BIO_UPTODATE, &bio->bi_flags);
 	if (error) {
 		IO_DONE_STATUS(piorequest, error);
 		goto exit;

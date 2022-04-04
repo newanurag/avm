@@ -1,6 +1,6 @@
 help:
 	@echo "################################################################################"
-	@echo "      DATAUMSOFT AVM Build/Make Help "
+	@echo "      AVM Build/Make Help "
 	@echo "################################################################################"
 	@echo ""
 	@echo "1) To build all engines/modules"
@@ -92,66 +92,36 @@ log:
 3a:3
 
 3ca:3c 3a
+###############################################################################
+# FOR KERNEL VERSION 3.x X86 Architecture
+###############################################################################
+
+3x:
+	(cd kernel_version_3/;pwd;	. ./setup.x86; make -f Makefile.x86 all)
+3cx:
+	(cd kernel_version_3/;pwd;	. ./setup.x86; make -f Makefile.x86 clean all)
 
 ###############################################################################
-# FOR KERNEL VERSION 4 BEGIN
+# FOR KERNEL VERSION 3.x ARM64 Architecture
 ###############################################################################
 
-4:
+3arm:
+	(cd kernel_version_3/;pwd;	. ./setup.arm64; make -f Makefile.arm64 all)
+
+3carm:
+	(cd kernel_version_3/;pwd;	. ./setup.arm64; make -f Makefile.arm64 clean all)
+
+###############################################################################
+# FOR KERNEL VERSION 4.x X86 Architecture
+###############################################################################
+
+x:
 	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 all)
+cx:
+	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 clean all)
 
-4all:4
-
-4c:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 clean)
-
-4log:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _log)
-
-4lab:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _lab)
-
-4infra:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _infra)
-
-4lab:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _lab)
-
-4bec:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _bec)
-
-4md:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _md)
-
-4dedupe:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _dedupe)
-
-4dd: 4dedupe
-
-4fec:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _fec)
-
-4ae:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _ae)
-
-4target:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _target)
-
-4volume:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _volume)
-
-4sysfs:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 _sysfs)
-
-4pkg:
-	(cd kernel_version_4/;pwd;	. ./setup.x86; make -f Makefile.x86 pkg)
-
-
-4a:4
-
-4ca:4c 4a
 ###############################################################################
-# FOR ARM64 Architecture
+# FOR KERNEL VERSION 4.x ARM64 Architecture
 ###############################################################################
 
 arm:
@@ -159,6 +129,7 @@ arm:
 
 carm:
 	(cd kernel_version_4/;pwd;	. ./setup.arm64; make -f Makefile.arm64 clean all)
+
 
 ###############################################################################
 # FOR copying kernel objects on test machine
@@ -168,4 +139,4 @@ scp:
 	scp -r /home/averma/avm/src/kernel_version_4/kernel_objects root@testvm:/home/averma/avm/
 	scp -r /home/averma/avm/src/kernel_version_4/scripts        root@testvm:/home/averma/avm/
 
-all:4ca carm
+all:cx carm

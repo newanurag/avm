@@ -160,7 +160,7 @@ RVOID dz_fec_align_write_io(PIOREQUEST iorequest)
 
 	if (io_size < LBA_BLOCK_SIZE) {
 		LOGFEC("Case1: Write Processing io_size for partial block at lba %lli\n",
-		dz_convert_sector_to_lba(DZ_BIO_GET_SECTOR(bio));
+		dz_convert_sector_to_lba(DZ_BIO_GET_SECTOR(bio)));
 
 		INC_COUNTER(fec_iocount_writes_partial_page);
 		dz_fec_align_write_for_partial_block(iorequest);
@@ -169,7 +169,7 @@ RVOID dz_fec_align_write_io(PIOREQUEST iorequest)
 	} else if (io_size == LBA_BLOCK_SIZE) {
 
 		LOGFEC("Case2: Write Processing io_size for single block at lba %lli\n",
-		dz_convert_sector_to_lba(DZ_BIO_GET_SECTOR(bio));
+		dz_convert_sector_to_lba(DZ_BIO_GET_SECTOR(bio)));
 
 		INC_COUNTER(fec_iocount_writes_single_page);
 
@@ -178,7 +178,7 @@ RVOID dz_fec_align_write_io(PIOREQUEST iorequest)
 
 	} else if (io_size > LBA_BLOCK_SIZE) {
 		LOGFEC("Case3: Write Processing io_size for multiple blocks at lba %lli\n",
-		dz_convert_sector_to_lba(DZ_BIO_GET_SECTOR(bio));
+		dz_convert_sector_to_lba(DZ_BIO_GET_SECTOR(bio)));
 
 		INC_COUNTER(fec_iocount_writes_multi_page);
 		dz_fec_align_write_for_multi_block(iorequest);

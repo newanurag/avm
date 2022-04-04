@@ -90,10 +90,10 @@ echo "DZ_TARGET_ENGINE_KERNEL_MODULE_NAME    := avm_9_target_engine_module"
 echo "DZ_VOLUME_ENGINE_KERNEL_MODULE_NAME    := avm_A_volume_engine_module"
 echo "DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME     := avm_B_sysfs_engine_module"
 
-} > include.mk.arm64
+} > include.mk
 
-echo "" >>include.mk.arm64
-echo "" >>include.mk.arm64
-echo "#Generated on `date`" >>include.mk.arm64
+echo "" >>include.mk
+echo "" >>include.mk
+echo "#Generated on `date`" >>include.mk
 echo "Welcome User !!! ""`date`"
 echo "All environment variables are setup. Refer to include.mk file for variables"

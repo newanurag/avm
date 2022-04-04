@@ -1,4 +1,4 @@
-include $(DZ_PROJECT_PATH)/include.mk.arm64
+include $(DZ_PROJECT_PATH)/include.mk
 
 DZ_PKG_BUILD_SCRIPT = $(DZ_PROJECT_PATH)/build_pkg/dz_prepkg.sh
 DZ_RPM_BUILD_SCRIPT = $(DZ_PROJECT_PATH)/build_pkg/dz_makerpm.sh
