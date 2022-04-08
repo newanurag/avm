@@ -471,8 +471,13 @@ MODULE_ALIAS_FS(SDCARDFS_NAME);
 static int __init init_sdcardfs_fs(void)
 {
 	int err;
-
+#ifndef SDCARDFS_VERSION
+	pr_info("Registering sdcardfs 0.1 "\n");
+#else
 	pr_info("Registering sdcardfs " SDCARDFS_VERSION "\n");
+#endif
+
+
 
 	err = sdcardfs_init_inode_cache();
 	if (err)
