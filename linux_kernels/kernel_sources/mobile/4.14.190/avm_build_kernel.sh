@@ -1,13 +1,21 @@
+#Config file for Samsung mobile A70 model
+export AVM_CONFIG_FILE=a70q_sea_open_defconfig
+
 export AVM_CROSS_COMPILE=/home/averma/kernel/toolchain/bin/aarch64-linux-android-
 export AVM_CLANG_TRIPLE=aarch64-linux-gnu-
 export AVM_REAL_CC=/home/averma/kernel/samsung/clang_llvm-10.0.0/bin/clang
 export AVM_KERNEL_MAKE_ENV="DTC_EXT=`pwd`/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
-export AVM_EXTRA_CFLAGS="-Wno-unused-const-variable -Wno-strict-prototypes"
 export AVM_BUILD_KERNEL_LOG_FILE=avm_build_kernel.log
 export AVM_ARCH=arm64
-export AVM_CONFIG_FILE=a70q_sea_open_defconfig
-export AVM_BUILD_REDIRECT=" \| tee -a ${AVM_BUILD_KERNEL_LOG_FILE} 2>&1"
 
+#This variable we have passed externally to deal with unwanted warning/errors
+export AVM_EXTRA_CFLAGS="-Wno-unused-const-variable -Wno-strict-prototypes"
+
+export AVM_OBJECT_DIR=AVMOUT
+
+#Kernel build/make parameters
+export KBUILD_OUTPUT=${AVM_OBJECT_DIR}
+export KBUILD_VERBOSE=1
 
 export AVM_MAKE_CONFIG_ARGS="$KERNEL_MAKE_ENV ARCH=$AVM_ARCH REAL_CC=$AVM_REAL_CC CROSS_COMPILE=$AVM_CROSS_COMPILE LLVM=1 CLANG_TRIPLE=$AVM_CLANG_TRIPLE"
 
@@ -16,11 +24,16 @@ export AVM_MAKE_BUILD_ARGS="$KERNEL_MAKE_ENV ARCH=$AVM_ARCH REAL_CC=$AVM_REAL_CC
 header()
 {
 
+	mkdir -p ${AVM_OBJECT_DIR}
 	mv ${AVM_BUILD_KERNEL_LOG_FILE} ${AVM_BUILD_KERNEL_LOG_FILE}.old > /dev/null 2>&1 
+	echo "################################################################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 
-	echo "Build Start Time: " >> ${AVM_BUILD_KERNEL_LOG_FILE}
-	echo "`date`" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "Build Start Time : `date` " >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "Current Directory: `pwd`" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+	echo "############ MAKE CONFIG ARGUMENTS/PARAMETERS ##################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
 
 	echo "AVM_CROSS_COMPILE=$AVM_CROSS_COMPILE" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
@@ -42,22 +55,75 @@ header()
 
 	echo "AVM_MAKE_BUILD_ARGS=$AVM_MAKE_BUILD_ARGS" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "################################################################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 }
 
 footer()
 {
+	echo "################################################################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
-	echo "Build End Time: " >> ${AVM_BUILD_KERNEL_LOG_FILE}
-	echo "`date`" >> ${AVM_BUILD_KERNEL_LOG_FILE}
-
+	echo "Build End   Time : `date` " >> ${AVM_BUILD_KERNEL_LOG_FILE}
 	echo "Log file for build logs: "${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "################################################################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo ""
 
 }
 
 main_make()
 {
-	time make V=1 -C `pwd` $AVM_MAKE_CONFIG_ARGS $AVM_CONFIG_FILE
-	time make V=1 -j2 -C `pwd` $AVM_MAKE_BUILD_ARGS | tee -a ${AVM_BUILD_KERNEL_LOG_FILE} 2>&1
+	make_cfg_cmd="make -j2 -C `pwd` $AVM_MAKE_CONFIG_ARGS $AVM_CONFIG_FILE "
+	make_bld_cmd="make -j2 -C `pwd` $AVM_MAKE_BUILD_ARGS"
+
+	echo "############ CORE KERNEL MAKE CONFIG STARTED ###################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+
+	echo "MAKE_CONFIG_COMMAND     : ${make_cfg_cmd}" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+	echo "MAKE_CONFIG_COMMAND     : ${make_cfg_cmd}"
+	echo ""
+
+	time ${make_cfg_cmd} | tee -a ${AVM_BUILD_KERNEL_LOG_FILE} 2>&1
+	rccfg=$?
+	echo "MAKE_CONFIG_COMMAND RC  : $rccfg" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo ""
+
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+	echo "############ CORE KERNEL BUILD/MAKE STARTED #################################### " >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+	echo "MAKE_BUILD_COMMAND      : ${make_bld_cmd}" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+	echo "MAKE_BUILD_COMMAND      : ${make_bld_cmd}"
+	echo ""
+
+	time ${make_bld_cmd} | tee -a ${AVM_BUILD_KERNEL_LOG_FILE} 2>&1
+	rcbld=$?
+	echo "MAKE_BUILD_COMMAND RC   : $rcbld" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo ""
+
+	echo "############ CORE KERNEL BUILD/MAKE COMPLETED ##################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo ""
+
+	if [ $rcbld -eq 0 ]; then
+		echo "------------------------------------"
+		echo "RESULT: KERNEL MAKE/BUILD SUCCESSFUL " | tee -a ${AVM_BUILD_KERNEL_LOG_FILE}
+		echo "------------------------------------"
+	else
+		echo "--------------------------------------------"
+		echo "RESULT: KERNEL MAKE/BUILD FAILURE with RC $rcbld" | tee -a ${AVM_BUILD_KERNEL_LOG_FILE}
+		echo "--------------------------------------------"
+	fi
+	echo ""
 }
 
 header
