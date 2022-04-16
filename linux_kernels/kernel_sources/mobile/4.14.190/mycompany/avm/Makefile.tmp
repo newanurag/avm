@@ -1,0 +1,38 @@
+include ../mycompany/avm/mobile_kernel.mk
+#DZ_PROJECT_PATH                := $(shell pwd)
+#DZ_HEADERS_PATH                :=$(DZ_PROJECT_PATH)/headers
+#DZ_HASH_PATH                   :=$(DZ_PROJECT_PATH)/hash_engine
+
+#ccflags-y := -g -I$(DZ_HEADERS_PATH) -I$(DZ_HASH_PATH) -I. -I../headers -I../hash_engine -DDZ_BIT_SPIN_LOCK -Wall -Wfatal-errors -DDZ_KERNEL_VERSION_4 -DDZ_ARCH_ARM64
+ccflags-y += -g 
+KBUILD_EXTRA_SYMBOLS := $(DZ_PROJECT_PATH)/infra_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(DZ_PROJECT_PATH)/bec_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(DZ_PROJECT_PATH)/metadata_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(DZ_PROJECT_PATH)/dedupe_engine/Module.symvers
+
+
+#########################################################################
+# Alignment Engine Source Files
+#########################################################################
+
+SRC_DIR							:= 
+ALIGN_ENGINE_SRC_FILES   		:= $(SRC_DIR)alignment_engine.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_read.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_read_single.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_read_partial.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_read_multi.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_write.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_write_single.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_write_partial.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_write_multi.c
+ALIGN_ENGINE_SRC_FILES        += $(SRC_DIR)alignment_engine_thread_pool.c
+SRC_FILES                     += $(ALIGN_ENGINE_SRC_FILES)
+OBJ_FILES                     := $(SRC_FILES:.c=.o)
+
+#########################################################################
+# Kernel Module Generation
+#########################################################################
+
+KERNEL_MODULE_NAME          := $(DZ_INFRA_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-m 						:= $(KERNEL_MODULE_NAME).o

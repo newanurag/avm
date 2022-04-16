@@ -1,3 +1,18 @@
+#Build script for building linux kernel for ARM64 architecture 
+#with google android toolchain and CLANG compiler
+#Note: This script is not for x86 platform
+
+export AVM_OBJECT_DIR=OUTOBJ
+
+if [ $1 -ge 1 ]; then
+	export KBUILD_VERBOSE=1
+	export AVM_NPROC=$1
+else
+	export KBUILD_VERBOSE=0
+	export AVM_NPROC=1
+fi
+
+
 #Config file for Samsung mobile A70 model
 export AVM_CONFIG_FILE=a70q_sea_open_defconfig
 
@@ -11,11 +26,10 @@ export AVM_ARCH=arm64
 #This variable we have passed externally to deal with unwanted warning/errors
 export AVM_EXTRA_CFLAGS="-Wno-unused-const-variable -Wno-strict-prototypes"
 
-export AVM_OBJECT_DIR=AVMOUT
 
 #Kernel build/make parameters
 export KBUILD_OUTPUT=${AVM_OBJECT_DIR}
-export KBUILD_VERBOSE=1
+
 
 export AVM_MAKE_CONFIG_ARGS="$KERNEL_MAKE_ENV ARCH=$AVM_ARCH REAL_CC=$AVM_REAL_CC CROSS_COMPILE=$AVM_CROSS_COMPILE LLVM=1 CLANG_TRIPLE=$AVM_CLANG_TRIPLE"
 
@@ -73,8 +87,8 @@ footer()
 
 main_make()
 {
-	make_cfg_cmd="make -j2 -C `pwd` $AVM_MAKE_CONFIG_ARGS $AVM_CONFIG_FILE "
-	make_bld_cmd="make -j2 -C `pwd` $AVM_MAKE_BUILD_ARGS"
+	make_cfg_cmd="make -j${AVM_NPROC} -C `pwd` $AVM_MAKE_CONFIG_ARGS $AVM_CONFIG_FILE "
+	make_bld_cmd="make -j${AVM_NPROC} -C `pwd` $AVM_MAKE_BUILD_ARGS"
 
 	echo "############ CORE KERNEL MAKE CONFIG STARTED ###################################" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
@@ -105,6 +119,7 @@ main_make()
 	time ${make_bld_cmd} | tee -a ${AVM_BUILD_KERNEL_LOG_FILE} 2>&1
 	rcbld=$?
 	echo "MAKE_BUILD_COMMAND RC   : $rcbld" >> ${AVM_BUILD_KERNEL_LOG_FILE}
+	echo "MAKE_BUILD_COMMAND RC   : $rcbld"
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
 
 	echo "" >> ${AVM_BUILD_KERNEL_LOG_FILE}
