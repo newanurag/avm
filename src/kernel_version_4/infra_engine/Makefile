@@ -1,70 +1,40 @@
-include $(DZ_PROJECT_PATH)/include.mk
-#KBUILD_EXTRA_SYMBOLS := $(DZ_PROJECT_PATH)/Module.symvers
+include $(srctree)/mycompany/avm/mobile_kernel.mk
 
 #########################################################################
 # Infrastructure Engine Source Files
 #########################################################################
 
 SRC_DIR                     := 
-INFRA_ENGINE_SRC_FILES      := $(SRC_DIR)infra_engine.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_switches_tunables.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_hash_murmur3.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_metadata.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_target.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_globals.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_bec.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_align.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_fec.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_dedupe.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_file.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_log.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_object.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_locks.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_memory_pool.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_thread_pool.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_iorequest.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_bio_read.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_bio_write.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_utils.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_experiment.c
-INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_engine_experiment_data.c
+INFRA_ENGINE_SRC_FILES      := $(SRC_DIR)infra_main.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_switches_tunables.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_hash_murmur3.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_metadata.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_target.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_globals.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_bec.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_align.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_fec.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_dedupe.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_file.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_log.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_object.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_locks.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_memory_pool.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_thread_pool.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_iorequest.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_bio_read.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_bio_write.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_utils.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_experiment.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_experiment_data.c
 SRC_FILES                   += $(INFRA_ENGINE_SRC_FILES)
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
 
 
 #########################################################################
 # Kernel Module Generation
 #########################################################################
-
-#CC = /usr/bin/gcc-4.8
-
-OBJ_FILES                   := $(SRC_FILES:.c=.o)
-#EXTRA_CFLAGS                +=-g -I $(DZ_HEADERS_PATH) -I $(DZ_HASH_PATH) -I . -DDZ_BIT_SPIN_LOCK -Wall -Werror -Wfatal-errors
-
-#EXTRA_CFLAGS                += -g -DCONFIG_KALLSYMS -DCONFIG_KALLSYMS_ALL -Wall -Werror -Wfatal-errors -Wimplicit-fallthrough=0
-EXTRA_CFLAGS                += -g -DCONFIG_KALLSYMS -DCONFIG_KALLSYMS_ALL -Wall -Werror -Wfatal-errors
-EXTRA_CFLAGS                += -I $(DZ_HEADERS_PATH) -I $(DZ_HASH_PATH) -I . -DDZ_BIT_SPIN_LOCK
-
-KERNEL_MODULE_NAME           = $(DZ_INFRA_ENGINE_KERNEL_MODULE_NAME)
-$(KERNEL_MODULE_NAME)-objs   = $(OBJ_FILES)
-obj-m                       := $(KERNEL_MODULE_NAME).o
-
-all:
-ifndef TARGET_KERNEL_SRC_PATH
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules O=/averma/
-else
-	make -C $(TARGET_KERNEL_SRC_PATH) M=$(PWD)/infra_engine modules O=/averma/
-endif
-
-clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-	rm -rf $(OBJ_FILES)
-	rm -rf objdump.txt
-
-ins:
-	insmod $(KERNEL_MODULE_NAME).ko
-
-objdump:
-	objdump -D -d -S -l -p -r -s --stabs -t --special-syms --all-headers --disassemble-zeroes  $(KERNEL_MODULE_NAME).ko > objdump.txt
-
-obj:objdump
+KERNEL_MODULE_NAME          := $(DZ_INFRA_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-m 						:= $(KERNEL_MODULE_NAME).o
 

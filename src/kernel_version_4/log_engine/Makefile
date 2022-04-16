@@ -1,5 +1,6 @@
-include $(DZ_PROJECT_PATH)/include.mk
-#KBUILD_EXTRA_SYMBOLS := $(DZ_PROJECT_PATH)/Module.symvers
+include $(srctree)/mycompany/avm/mobile_kernel.mk
+
+#KBUILD_EXTRA_SYMBOLS := $(obj)/../Module.symvers
 
 #########################################################################
 # Infrastructure Engine Source Files
@@ -8,34 +9,13 @@ include $(DZ_PROJECT_PATH)/include.mk
 SRC_DIR                     := 
 LOG_ENGINE_SRC_FILES        += $(SRC_DIR)emlog.c
 SRC_FILES                   += $(LOG_ENGINE_SRC_FILES)
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
 
 
 #########################################################################
 # Kernel Module Generation
 #########################################################################
 
-OBJ_FILES                   := $(SRC_FILES:.c=.o)
-EXTRA_CFLAGS                +=-g -I $(DZ_HEADERS_PATH) -I $(DZ_HASH_PATH) -I . -DDZ_BIT_SPIN_LOCK -Wall -Werror -Wfatal-errors
-
-KERNEL_MODULE_NAME           = $(DZ_LOG_ENGINE_KERNEL_MODULE_NAME)
-$(KERNEL_MODULE_NAME)-objs   = $(OBJ_FILES)
-obj-m                       := $(KERNEL_MODULE_NAME).o
-
-all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-
-clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-	rm -rf $(OBJ_FILES)
-	rm -rf objdump.txt
-
-ins:
-	insmod $(KERNEL_MODULE_NAME).ko
-
-rm:
-	rmmod $(KERNEL_MODULE_NAME)
-
-dm:
-	dmesg
-
-dmesg:dm
+KERNEL_MODULE_NAME          := $(DZ_LOG_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-m 						:= $(KERNEL_MODULE_NAME).o

@@ -111,13 +111,13 @@ RPVOID dz_create_metadata_table(SIZE table_size);
 RVOID  dz_destroy_metadata_table(VOID);
 RPVOID dz_create_metadata_lock_table(SIZE table_size);
 RVOID  dz_destroy_metadata_lock_table(VOID);
+RVOID dz_destroy_metadata_flush_thread_pool(VOID);
 
 VOID  dz_md_init_counters(VOID);
 RVOID dz_metadata_flush_start_from_timer_context(VOID);
 RINT  dz_metadata_flush_timer(PVOID data);
 RVOID dz_metadata_flush_timer_stop(VOID);
 RINT  dz_metadata_create_flush_thread_pool(INT num_threads);
-RVOID dz_destroy_flush_thread_pool(VOID);
 RVOID dz_metadata_flush_io(PIOREQUEST parent_iorequest);
 
 #endif // _MD_ENGINE_H_

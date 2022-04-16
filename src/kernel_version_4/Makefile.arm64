@@ -36,7 +36,8 @@ DZ_PACKAGE_NAME_SHIP_SOURCE_CODE = avm_src
 # Kernel Module Generation
 #########################################################################
 #ARG_TARGET_KERNEL_SRC_PATH  = /home/averma/kernel/linux-4.14.271/linux-4.14.271.x86
-ARG_TARGET_KERNEL_SRC_PATH   = $(DZ_PROJECT_PATH)/../../linux_kernels/kernel_headers/arm64/linux-headers-4.14.271-avm.arm64
+#ARG_TARGET_KERNEL_SRC_PATH   = $(DZ_PROJECT_PATH)/../../linux_kernels/kernel_headers/arm64/linux-headers-4.14.271-avm.arm64
+ARG_TARGET_KERNEL_SRC_PATH   = $(DZ_PROJECT_PATH)/../../linux_kernels/kernel_sources/mobile/4.14.190
 #ARG_TARGET_KERNEL_SRC_PATH  = /home/averma/kernel/samsung/kernel
 
 OBJ_FILES                   := $(SRC_FILES:.c=.o)
@@ -74,7 +75,7 @@ _infra:
 	@echo $(DZ_INFRA_ENGINE_PATH)
 	@echo "############################################"
 	@echo ""
-	make -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_INFRA_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
+	make V=1 -C $(ARG_TARGET_KERNEL_SRC_PATH) M=$(DZ_INFRA_ENGINE_PATH) modules EXTRA_CFLAGS="$(EXTRA_CFLAGS)"
 	@echo ""
 	mv $(DZ_CURRENT_BUILD_PATH)/infra_engine/*.ko $(DZ_KERNEL_OBJECTS_PATH)/
 	@echo ""
