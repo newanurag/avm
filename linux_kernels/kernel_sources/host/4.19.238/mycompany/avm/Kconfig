@@ -1,0 +1,14 @@
+#
+# AVM driver as part of kernel source
+#
+
+menu "Advanced Volume Manager (AVM)"
+
+config MYCOMPANY_AVM
+        depends on ARM
+        tristate "AVM module"
+        default y
+        help
+          AVM kernel module integrated as part of kernel source.
+
+endmenu
