@@ -1,0 +1,40 @@
+include $(srctree)/mycompany/avm/mobile_kernel.mk
+
+#########################################################################
+# Infrastructure Engine Source Files
+#########################################################################
+
+SRC_DIR                     := 
+INFRA_ENGINE_SRC_FILES      := $(SRC_DIR)infra_main.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_switches_tunables.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_hash_murmur3.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_metadata.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_target.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_globals.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_bec.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_align.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_fec.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_dedupe.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_file.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_log.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_object.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_locks.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_memory_pool.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_thread_pool.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_iorequest.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_bio_read.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_bio_write.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_utils.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_experiment.c
+INFRA_ENGINE_SRC_FILES      += $(SRC_DIR)infra_experiment_data.c
+SRC_FILES                   += $(INFRA_ENGINE_SRC_FILES)
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
+
+
+#########################################################################
+# Kernel Module Generation
+#########################################################################
+KERNEL_MODULE_NAME          := $(DZ_INFRA_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-m 						:= $(KERNEL_MODULE_NAME).o
+

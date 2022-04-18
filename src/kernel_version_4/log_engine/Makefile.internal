@@ -1,0 +1,21 @@
+include $(srctree)/mycompany/avm/mobile_kernel.mk
+
+#KBUILD_EXTRA_SYMBOLS := $(obj)/../Module.symvers
+
+#########################################################################
+# Infrastructure Engine Source Files
+#########################################################################
+
+SRC_DIR                     := 
+LOG_ENGINE_SRC_FILES        += $(SRC_DIR)emlog.c
+SRC_FILES                   += $(LOG_ENGINE_SRC_FILES)
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
+
+
+#########################################################################
+# Kernel Module Generation
+#########################################################################
+
+KERNEL_MODULE_NAME          := $(DZ_LOG_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-$(CONFIG_MYCOMPANY_AVM) := $(KERNEL_MODULE_NAME).o

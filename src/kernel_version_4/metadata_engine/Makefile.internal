@@ -1,0 +1,26 @@
+include $(srctree)/mycompany/avm/mobile_kernel.mk
+
+KBUILD_EXTRA_SYMBOLS := $(obj)/../infra_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(obj)/../bec_engine/Module.symvers
+#KBUILD_EXTRA_SYMBOLS := $(DZ_PROJECT_PATH)/Module.symvers
+
+#########################################################################
+# Metadata Engine Source Files
+#########################################################################
+
+SRC_DIR                     := 
+METADATA_ENGINE_SRC_FILES     := $(SRC_DIR)md_main.c
+METADATA_ENGINE_SRC_FILES     += $(SRC_DIR)md_tables.c
+METADATA_ENGINE_SRC_FILES     += $(SRC_DIR)md_superblock.c
+METADATA_ENGINE_SRC_FILES     += $(SRC_DIR)md_write.c
+METADATA_ENGINE_SRC_FILES     += $(SRC_DIR)md_flush.c
+SRC_FILES                   += $(METADATA_ENGINE_SRC_FILES)
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
+
+#########################################################################
+# Kernel Module Generation
+#########################################################################
+
+KERNEL_MODULE_NAME          := $(DZ_METADATA_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-$(CONFIG_MYCOMPANY_AVM) := $(KERNEL_MODULE_NAME).o

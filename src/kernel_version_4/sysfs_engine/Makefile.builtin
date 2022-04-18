@@ -1,0 +1,59 @@
+include $(srctree)/mycompany/avm/mobile_kernel.mk
+
+#KBUILD_EXTRA_SYMBOLS := $(obj)/../Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(obj)/../infra_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(obj)/../bec_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(obj)/../dedupe_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(obj)/../fec_engine/Module.symvers
+KBUILD_EXTRA_SYMBOLS += $(obj)/../target_engine/Module.symvers
+
+
+SCRIPT_NAME:=sysfs.py
+OUT_C_FILE:=sysfs_engine_autogen.c
+
+
+#########################################################################
+# Sysfs Engine Source Files
+#########################################################################
+
+SRC_DIR                     := 
+SYSFS_ENGINE_SRC_FILES      := $(SRC_DIR)sysfs_kernel_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_target_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_alignment_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_bec_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_fec_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_dedupe_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_volume_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_metadata_engine_autogen.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_engine_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)target_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)alignment_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)bec_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)fec_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)dedupe_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)volume_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)metadata_engine_sysfs_functions.c
+SYSFS_ENGINE_SRC_FILES      += $(SRC_DIR)sysfs_engine.c
+SRC_FILES                   += $(SYSFS_ENGINE_SRC_FILES)
+OBJ_FILES                   := $(SRC_FILES:.c=.o)
+
+#########################################################################
+# Kernel Module Generation
+#########################################################################
+
+KERNEL_MODULE_NAME          := $(DZ_SYSFS_ENGINE_KERNEL_MODULE_NAME)
+$(KERNEL_MODULE_NAME)-y 	:= $(OBJ_FILES)
+obj-m 						:= $(KERNEL_MODULE_NAME).o
+
+
+.PHONY: autogen
+
+autogen:
+	@echo "################################"
+	@echo "Building Sysfs Engine"
+	@echo "################################"
+	./$(SCRIPT_NAME)
+	#./$(SCRIPT_NAME) > $(OUT_C_FILE)
+
+all:autogen
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
