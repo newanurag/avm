@@ -9,4 +9,5 @@ alias cdk4='cd /home/averma/kernel/linux-4.14.271/linux-4.14.271; pwd;'
 alias cdk3='cd /home/averma/kernel/linux-3.10.1/linux-3.10.1; pwd;'
 alias cs='ctags -R; cscope -d; cscope -R'
 alias ff='find . -name '
+alias ffg='find . -type f |xargs grep -i '
 export PS1="[AnuragVerma]> "
